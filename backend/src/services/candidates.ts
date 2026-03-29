@@ -19,31 +19,43 @@ export interface CandidateProfile {
 
 export async function getCandidatesForBallot(address: string): Promise<CandidateProfile[]> {
   const ballot = await getBallotForAddress(address)
-  const profiles: CandidateProfile[] = []
+  const allCandidates: { name: string; party?: string; candidateUrl?: string; photoUrl?: string; office: string; district: any }[] = []
 
   for (const contest of ballot.contests) {
     if (!contest.candidates) continue
     for (const c of contest.candidates) {
-      const id = `civic:${c.name.toLowerCase().replace(/\s+/g, '-')}`
-      const bio = await getBallotpediaCandidate(c.name)
-      profiles.push({
-        id,
-        name: c.name,
-        office: contest.office,
-        state: contest.district?.id?.split('/')[2] ?? '',
-        party: c.party,
-        bio: bio?.extract,
-        photoUrl: c.photoUrl,
-        websiteUrl: c.candidateUrl ?? bio?.fullurl,
-        positions: [],
-        sources: bio
-          ? [{ name: 'Ballotpedia', url: bio.fullurl, fetchedAt: new Date().toISOString() }]
-          : [],
-        dataConfidence: bio ? 'medium' : 'low',
-        lastVerified: new Date().toISOString(),
-      })
+      allCandidates.push({ ...c, office: contest.office, district: contest.district })
     }
   }
 
-  return profiles
+  // Fetch all Ballotpedia bios in parallel instead of sequential await
+  const bioResults = await Promise.all(
+    allCandidates.map(c => getBallotpediaCandidate(c.name).catch(() => null))
+  )
+
+  return allCandidates.map((c, i) => {
+    const bio = bioResults[i]
+    const id = `civic:${c.name.toLowerCase().replace(/\s+/g, '-')}`
+    return {
+      id,
+      name: c.name,
+      office: c.office,
+      state: c.district?.id?.split('/')[2] ?? '',
+      party: c.party,
+      bio: bio?.extract,
+      photoUrl: c.photoUrl,
+      websiteUrl: c.candidateUrl ?? bio?.fullurl,
+      positions: [],
+      sources: bio
+        ? [{ name: 'Ballotpedia', url: bio.fullurl, fetchedAt: new Date().toISOString() }]
+        : [],
+      dataConfidence: bio ? 'medium' : 'low',
+      lastVerified: new Date().toISOString(),
+    }
+  })
+}
+
+export async function getCandidateById(id: string, address: string): Promise<CandidateProfile | null> {
+  const candidates = await getCandidatesForBallot(address)
+  return candidates.find(c => c.id === id) ?? null
 }

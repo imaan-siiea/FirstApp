@@ -11,8 +11,16 @@ import { authRoutes } from './routes/auth'
 export function buildApp() {
   const app = Fastify({ logger: true })
 
-  app.register(cors, { origin: true })
-  app.register(jwt, { secret: process.env.JWT_SECRET ?? 'dev-secret' })
+  const allowedOrigins = process.env.CORS_ORIGIN?.split(',').map(o => o.trim()) ?? []
+  app.register(cors, {
+    origin: process.env.NODE_ENV === 'production' ? allowedOrigins : true,
+  })
+
+  const jwtSecret = process.env.JWT_SECRET
+  if (!jwtSecret && process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET environment variable must be set in production')
+  }
+  app.register(jwt, { secret: jwtSecret ?? 'dev-secret-change-before-deploying' })
   app.register(rateLimit, { max: 100, timeWindow: '1 minute' })
 
   app.get('/health', async () => ({ status: 'ok' }))

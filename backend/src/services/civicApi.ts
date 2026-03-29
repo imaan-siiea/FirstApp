@@ -26,20 +26,63 @@ export async function getBallotForAddress(address: string): Promise<CivicBallot>
   const cached = await cacheGet<CivicBallot>(cacheKey)
   if (cached) return cached
 
-  const response = await got(`${BASE_URL}/voterinfo`, {
-    searchParams: { key: API_KEY, address, electionId: 'upcoming' },
-  }).json<any>()
+  let ballot: CivicBallot
 
-  const ballot: CivicBallot = {
-    normalizedAddress: response.normalizedInput
-      ? `${response.normalizedInput.line1}, ${response.normalizedInput.city}, ${response.normalizedInput.state}`
-      : address,
-    contests: response.contests ?? [],
-    pollingLocations: response.pollingLocations ?? [],
+  try {
+    // Try upcoming election voter info first (works during active election periods)
+    const response = await got(`${BASE_URL}/voterinfo`, {
+      searchParams: { key: API_KEY, address },
+    }).json<any>()
+
+    ballot = {
+      normalizedAddress: response.normalizedInput
+        ? `${response.normalizedInput.line1}, ${response.normalizedInput.city}, ${response.normalizedInput.state}`
+        : address,
+      contests: response.contests ?? [],
+      pollingLocations: response.pollingLocations ?? [],
+    }
+  } catch {
+    // Year-round fallback: use /representatives which always works
+    const repsResponse = await getRepresentativesByAddress(address)
+    ballot = representativesToBallot(address, repsResponse)
   }
 
   await cacheSet(cacheKey, ballot, CACHE_TTL)
   return ballot
+}
+
+function representativesToBallot(address: string, repsData: any): CivicBallot {
+  const contests: CivicContest[] = []
+
+  const offices: any[] = repsData.offices ?? []
+  const officials: any[] = repsData.officials ?? []
+
+  for (const office of offices) {
+    const officeCandidates = (office.officialIndices ?? []).map((idx: number) => {
+      const official = officials[idx]
+      return {
+        name: official?.name ?? 'Unknown',
+        party: official?.party,
+        candidateUrl: official?.urls?.[0],
+        photoUrl: official?.photoUrl,
+      }
+    })
+
+    contests.push({
+      type: 'General',
+      office: office.name,
+      level: office.levels ?? [],
+      roles: office.roles ?? [],
+      district: {
+        name: office.divisionId ?? '',
+        scope: office.levels?.[0] ?? 'country',
+        id: office.divisionId ?? '',
+      },
+      candidates: officeCandidates,
+    })
+  }
+
+  return { normalizedAddress: address, contests, pollingLocations: [] }
 }
 
 export async function getRepresentativesByAddress(address: string): Promise<any> {

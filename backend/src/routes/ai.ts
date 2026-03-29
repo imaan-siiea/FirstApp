@@ -14,11 +14,18 @@ export async function aiRoutes(app: FastifyInstance) {
         },
       },
     },
+    config: {
+      rateLimit: {
+        max: 20,
+        timeWindow: '1 day',
+        keyGenerator: (req: any) => req.ip,
+      },
+    },
     handler: async (req, reply) => {
       try {
         const candidates = await getCandidatesForBallot(req.body.address)
         const answer = await getChatResponse(req.body.messages, candidates)
-        return { answer, model: 'claude-sonnet-4-6' }
+        return { answer, model: 'llama-3.3-70b-versatile' }
       } catch {
         return reply.code(503).send({ error: 'AI guide temporarily unavailable' })
       }
