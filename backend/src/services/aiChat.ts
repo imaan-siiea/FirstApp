@@ -1,7 +1,7 @@
-import Anthropic from '@anthropic-ai/sdk'
+import Groq from 'groq-sdk'
 import type { CandidateProfile } from './candidates'
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY ?? 'placeholder' })
 
 const SYSTEM_PROMPT = `You are a nonpartisan civic information guide for the VoterIQ app.
 Your role is to help voters understand candidates and elections using only the provided candidate data.
@@ -36,14 +36,16 @@ export async function getChatResponse(
 
   const contextBlock = `CANDIDATE DATA (use only this information):\n${JSON.stringify(candidateContext, null, 2)}`
 
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
+  const response = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
     max_tokens: 1024,
-    system: `${SYSTEM_PROMPT}\n\n${contextBlock}`,
-    messages: messages.map(m => ({ role: m.role, content: m.content })),
+    messages: [
+      { role: 'system', content: `${SYSTEM_PROMPT}\n\n${contextBlock}` },
+      ...messages.map(m => ({ role: m.role, content: m.content })),
+    ],
   })
 
-  const block = response.content[0]
-  if (block.type !== 'text') throw new Error('Unexpected response type from Claude')
-  return block.text
+  const text = response.choices[0]?.message?.content
+  if (!text) throw new Error('Empty response from AI')
+  return text
 }

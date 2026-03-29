@@ -19,11 +19,8 @@ export async function aiRoutes(app: FastifyInstance) {
         const candidates = await getCandidatesForBallot(req.body.address)
         const answer = await getChatResponse(req.body.messages, candidates)
         return { answer, model: 'claude-sonnet-4-6' }
-      } catch (err: any) {
-        if (err?.status === 529) {
-          return reply.code(503).send({ error: 'AI guide temporarily unavailable' })
-        }
-        return reply.code(500).send({ error: 'Failed to get AI response' })
+      } catch {
+        return reply.code(503).send({ error: 'AI guide temporarily unavailable' })
       }
     },
   })
