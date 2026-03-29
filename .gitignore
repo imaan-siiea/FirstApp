@@ -1,0 +1,19 @@
+# Superpowers brainstorm sessions
+.superpowers/
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Node / general
+node_modules/
+.env
+.env.local
+.env*.local
+dist/
+build/
+*.log
+
+# Expo
+.expo/
+ios/
+android/

@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(bash \"/home/imran/.claude/skills/brainstorming/scripts/start-server.sh\" --project-dir \"/home/imran/Documents/Imaan Ali Folder/FirstApp\")"
-    ]
-  }
-}
