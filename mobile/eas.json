@@ -1,0 +1,29 @@
+{
+  "cli": { "version": ">= 7.0.0" },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": { "EXPO_PUBLIC_API_URL": "https://api-staging.voteriq.app" }
+    },
+    "production": {
+      "env": { "EXPO_PUBLIC_API_URL": "https://api.voteriq.app" }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "imaan@siiea.ai",
+        "ascAppId": "FILL_IN_FROM_APP_STORE_CONNECT",
+        "appleTeamId": "FILL_IN_FROM_APPLE_DEVELOPER"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "production"
+      }
+    }
+  }
+}

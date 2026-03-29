@@ -1,0 +1,21 @@
+name: EAS Build
+
+on:
+  push:
+    branches: [main]
+    paths: ['mobile/**']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install -g eas-cli
+      - run: cd mobile && npm ci
+      - name: Build iOS + Android (preview)
+        run: cd mobile && eas build --platform all --profile preview --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
