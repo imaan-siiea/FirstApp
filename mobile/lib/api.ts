@@ -27,6 +27,12 @@ export const api = {
   getRepresentatives: (stateCode: string) =>
     request<{ representatives: any[] }>(`/representatives?state=${stateCode}`),
 
+  getFederalOfficials: (stateCode: string) =>
+    request<{
+      senators: { name: string; party: string; imageUrl: string | null; upIn2026: boolean }[]
+      governor: { name: string; party: string }
+    }>(`/federal-officials?state=${stateCode}`),
+
   getCountyElections: (stateCode: string) =>
     request<{ state: string; stateName: string; summary: string; source: string }>(`/ai/county-elections?state=${stateCode}`),
 
@@ -51,9 +57,9 @@ export const api = {
   getCandidatesByOffice: (office: string, address: string) =>
     request<{ candidates: any[] }>(`/candidates/by-office?office=${encodeURIComponent(office)}&address=${encodeURIComponent(address)}`),
 
-  chat: (messages: { role: string; content: string }[], address: string) =>
+  chat: (messages: { role: string; content: string }[], address: string, repContext?: object | null) =>
     request<{ answer: string }>('/ai/chat', {
-      method: 'POST', body: JSON.stringify({ messages, address }),
+      method: 'POST', body: JSON.stringify({ messages, address, repContext }),
     }),
 
   getRegistration: (stateCode: string) =>
@@ -67,6 +73,31 @@ export const api = {
       method: 'POST', body: JSON.stringify({ address }),
     }),
 
+  getRepProfile: (name: string, state: string, chamber: string, party: string) =>
+    request<{ background: string; policies: string[]; highlights: string[]; funFacts: string[] }>(
+      `/ai/rep-profile?name=${encodeURIComponent(name)}&state=${encodeURIComponent(state)}&chamber=${encodeURIComponent(chamber)}&party=${encodeURIComponent(party)}`
+    ),
+
+  getStateTrends: (stateCode: string) =>
+    request<{ state: string; stateName: string; trends: string }>(`/ai/state-trends?state=${stateCode}`),
+
+  getElectionNews: (stateCode: string) =>
+    request<{
+      state: string; stateName: string
+      articles: { title: string; url: string; source: string; description: string; publishedAt: string }[]
+    }>(`/news/elections?state=${stateCode}`),
+
+  getLatestNews: () =>
+    request<{
+      articles: { title: string; url: string; source: string; description: string; publishedAt: string }[]
+    }>('/news/latest'),
+
+  getPolling: (stateCode: string) =>
+    request<{
+      state: string; stateName: string; outlook: string; dataNote: string
+      races: { office: string; cycle: string; rating: string; rationale: string; candidates: { name: string; party: string; polling: number; trend: 'up' | 'down' | 'stable' }[] }[]
+    }>(`/ai/polling?state=${stateCode}`),
+
   login: (email: string, password: string) =>
     request<{ accessToken: string; refreshToken: string }>('/auth/login', {
       method: 'POST', body: JSON.stringify({ email, password }),
@@ -76,4 +107,20 @@ export const api = {
     request<{ accessToken: string; refreshToken: string }>('/auth/register', {
       method: 'POST', body: JSON.stringify({ email, password }),
     }),
+
+  registerPushToken: (token: string, platform: 'ios' | 'android') =>
+    request<void>('/push-token', {
+      method: 'POST', body: JSON.stringify({ token, platform }),
+    }),
+
+  getFollows: () =>
+    request<{ id: string; entityType: string; entityId: string; entityName: string; createdAt: string }[]>('/follows'),
+
+  addFollow: (entityType: string, entityId: string, entityName: string) =>
+    request<{ id: string }>('/follows', {
+      method: 'POST', body: JSON.stringify({ entityType, entityId, entityName }),
+    }),
+
+  removeFollow: (entityId: string) =>
+    request<void>(`/follows/${encodeURIComponent(entityId)}`, { method: 'DELETE' }),
 }
