@@ -7,6 +7,8 @@ import { candidateRoutes } from './routes/candidates'
 import { aiRoutes } from './routes/ai'
 import { registrationRoutes } from './routes/registration'
 import { authRoutes } from './routes/auth'
+import { newsRoutes } from './routes/news'
+import { followsRoutes } from './routes/follows'
 
 export function buildApp() {
   const app = Fastify({ logger: true })
@@ -30,6 +32,8 @@ export function buildApp() {
   app.register(aiRoutes)
   app.register(registrationRoutes)
   app.register(authRoutes)
+  app.register(newsRoutes)
+  app.register(followsRoutes)
 
   return app
 }
