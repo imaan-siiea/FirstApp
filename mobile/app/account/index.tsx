@@ -1,11 +1,30 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { useEffect } from 'react'
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native'
 import { router } from 'expo-router'
+import * as Notifications from 'expo-notifications'
 import { useAppStore } from '../../lib/store'
+import { api } from '../../lib/api'
+
+async function registerPushToken() {
+  try {
+    const { status } = await Notifications.requestPermissionsAsync()
+    if (status !== 'granted') return
+    const tokenData = await Notifications.getExpoPushTokenAsync()
+    const platform = Platform.OS === 'ios' ? 'ios' : 'android'
+    await api.registerPushToken(tokenData.data, platform)
+  } catch {
+    // Push token registration is best-effort
+  }
+}
 
 export default function AccountScreen() {
   const userId = useAppStore((s) => s.userId)
   const clearAuth = useAppStore((s) => s.clearAuth)
   const address = useAppStore((s) => s.address)
+
+  useEffect(() => {
+    if (userId) registerPushToken()
+  }, [userId])
 
   if (!userId) {
     return (

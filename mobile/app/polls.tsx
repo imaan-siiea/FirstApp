@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import {
   View, Text, ScrollView, ActivityIndicator,
-  TouchableOpacity, StyleSheet, Image, Linking,
+  TouchableOpacity, StyleSheet, Image, Linking, Alert,
 } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { api } from '../lib/api'
 import { ElectoralMap } from '../components/ElectoralMap'
+import { useFollows } from '../hooks/useFollows'
+import { useAppStore } from '../lib/store'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -86,7 +88,10 @@ function Accordion({ title, subtitle, accentColor, icon, isLoading, children }: 
 
 // ─── Federal Official Row ─────────────────────────────────────────────────────
 
-function FederalRow({ official, chamber, stateCode }: { official: any; chamber: string; stateCode: string }) {
+function FederalRow({ official, chamber, stateCode, isFollowing, onToggleBell }: {
+  official: any; chamber: string; stateCode: string
+  isFollowing: boolean; onToggleBell: () => void
+}) {
   const color = PARTY_COLORS[official.party] ?? '#64748b'
 
   function navigate() {
@@ -127,6 +132,9 @@ function FederalRow({ official, chamber, stateCode }: { official: any; chamber: 
           )}
         </View>
       </View>
+      <TouchableOpacity onPress={onToggleBell} style={styles.bellBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <Text style={styles.bellIcon}>{isFollowing ? '🔔' : '🔕'}</Text>
+      </TouchableOpacity>
       <View style={[styles.repArrowWrap, { backgroundColor: color + '12' }]}>
         <Text style={[styles.repChevron, { color }]}>›</Text>
       </View>
@@ -136,7 +144,10 @@ function FederalRow({ official, chamber, stateCode }: { official: any; chamber: 
 
 // ─── Rep Row ─────────────────────────────────────────────────────────────────
 
-function RepRow({ rep, stateCode }: { rep: any; stateCode: string }) {
+function RepRow({ rep, stateCode, isFollowing, onToggleBell }: {
+  rep: any; stateCode: string
+  isFollowing: boolean; onToggleBell: () => void
+}) {
   const color = PARTY_COLORS[rep.party] ?? '#64748b'
 
   function navigate() {
@@ -170,6 +181,9 @@ function RepRow({ rep, stateCode }: { rep: any; stateCode: string }) {
         <Text style={styles.repName}>{rep.name}</Text>
         <Text style={styles.repMeta}>District {rep.district} · {rep.party}</Text>
       </View>
+      <TouchableOpacity onPress={onToggleBell} style={styles.bellBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <Text style={styles.bellIcon}>{isFollowing ? '🔔' : '🔕'}</Text>
+      </TouchableOpacity>
       <View style={[styles.repArrowWrap, { backgroundColor: color + '12' }]}>
         <Text style={[styles.repChevron, { color }]}>›</Text>
       </View>
@@ -327,6 +341,24 @@ function SectionHeader({
 // ─── State View ───────────────────────────────────────────────────────────────
 
 function StateView({ stateCode }: { stateCode: string }) {
+  const userId = useAppStore((s) => s.userId)
+  const { isFollowing, toggleFollow } = useFollows()
+
+  function handleBell(entityType: 'politician' | 'state' | 'party', entityId: string, entityName: string) {
+    if (!userId) {
+      Alert.alert(
+        'Sign in required',
+        'Create a free account to follow politicians and get news alerts.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign In', onPress: () => router.push('/account/login') },
+        ],
+      )
+      return
+    }
+    toggleFollow(entityType, entityId, entityName)
+  }
+
   const { data: federalData } = useQuery({
     queryKey: ['federalOfficials', stateCode],
     queryFn: () => api.getFederalOfficials(stateCode),
@@ -386,7 +418,14 @@ function StateView({ stateCode }: { stateCode: string }) {
         icon="🇺🇸"
       >
         {(federalData?.senators ?? []).map((s: any, i: number) => (
-          <FederalRow key={i} official={s} chamber="us_senate" stateCode={stateCode} />
+          <FederalRow
+            key={i}
+            official={s}
+            chamber="us_senate"
+            stateCode={stateCode}
+            isFollowing={isFollowing(s.name)}
+            onToggleBell={() => handleBell('politician', s.name, s.name)}
+          />
         ))}
       </Accordion>
 
@@ -398,7 +437,13 @@ function StateView({ stateCode }: { stateCode: string }) {
         icon="🏛️"
       >
         {federalData?.governor ? (
-          <FederalRow official={federalData.governor} chamber="governor" stateCode={stateCode} />
+          <FederalRow
+            official={federalData.governor}
+            chamber="governor"
+            stateCode={stateCode}
+            isFollowing={isFollowing(federalData.governor.name)}
+            onToggleBell={() => handleBell('politician', federalData.governor.name, federalData.governor.name)}
+          />
         ) : (
           <Text style={styles.emptyMsg}>Loading…</Text>
         )}
@@ -415,7 +460,13 @@ function StateView({ stateCode }: { stateCode: string }) {
         {senators.length === 0
           ? <Text style={styles.emptyMsg}>No senators found for this state.</Text>
           : senators.map((rep: any) => (
-              <RepRow key={rep.id ?? rep.name} rep={rep} stateCode={stateCode} />
+              <RepRow
+                key={rep.id ?? rep.name}
+                rep={rep}
+                stateCode={stateCode}
+                isFollowing={isFollowing(rep.name)}
+                onToggleBell={() => handleBell('politician', rep.name, rep.name)}
+              />
             ))
         }
       </Accordion>
@@ -431,7 +482,13 @@ function StateView({ stateCode }: { stateCode: string }) {
         {houseReps.length === 0
           ? <Text style={styles.emptyMsg}>No representatives found for this state.</Text>
           : houseReps.map((rep: any) => (
-              <RepRow key={rep.id ?? rep.name} rep={rep} stateCode={stateCode} />
+              <RepRow
+                key={rep.id ?? rep.name}
+                rep={rep}
+                stateCode={stateCode}
+                isFollowing={isFollowing(rep.name)}
+                onToggleBell={() => handleBell('politician', rep.name, rep.name)}
+              />
             ))
         }
       </Accordion>
@@ -680,6 +737,8 @@ const styles = StyleSheet.create({
   repMeta: { fontSize: 12, color: '#64748b' },
   repArrowWrap: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   repChevron: { fontSize: 18, fontWeight: '700' },
+  bellBtn: { padding: 6, marginLeft: 4 },
+  bellIcon: { fontSize: 17 },
   emptyMsg: { fontSize: 13, color: '#94a3b8', fontStyle: 'italic', textAlign: 'center', padding: 20 },
 
   // Federal row extras
