@@ -21,6 +21,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
+  getElections: (stateCode?: string) =>
+    request<{ elections: any[] }>(`/elections${stateCode ? `?state=${stateCode}` : ''}`),
+
   getBallot: (address: string) =>
     request<{ contests: any[]; normalizedAddress: string }>('/ballot', {
       method: 'POST', body: JSON.stringify({ address }),

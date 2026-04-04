@@ -23,9 +23,22 @@ export interface CivicBallot {
   electionDay?: string
 }
 
-export async function getUpcomingElections(): Promise<{ id: string; name: string; electionDay: string }[]> {
+export interface ElectionSummary {
+  id: string
+  name: string
+  electionDay: string
+  ocdDivisionId: string
+  stateCode: string | null // 'TX', 'CA', etc. — null means national
+}
+
+function extractStateCode(ocdDivisionId: string): string | null {
+  const match = ocdDivisionId.match(/\/state:([a-z]{2})/)
+  return match ? match[1].toUpperCase() : null
+}
+
+export async function getUpcomingElections(): Promise<ElectionSummary[]> {
   const cacheKey = 'civic:elections'
-  const cached = await cacheGet<any[]>(cacheKey)
+  const cached = await cacheGet<ElectionSummary[]>(cacheKey)
   if (cached) return cached
 
   const response = await got(`${BASE_URL}/elections`, {
@@ -38,13 +51,20 @@ export async function getUpcomingElections(): Promise<{ id: string; name: string
   const oneYearAhead = new Date(now)
   oneYearAhead.setFullYear(now.getFullYear() + 1)
 
-  const elections = (response.elections ?? [])
+  const elections: ElectionSummary[] = (response.elections ?? [])
     .filter((e: any) => {
       if (e.id === '2000') return false // exclude test election
       const d = new Date(e.electionDay)
       return d >= twoYearsAgo && d <= oneYearAhead
     })
-    .sort((a: any, b: any) => a.electionDay.localeCompare(b.electionDay))
+    .map((e: any) => ({
+      id: e.id,
+      name: e.name,
+      electionDay: e.electionDay,
+      ocdDivisionId: e.ocdDivisionId ?? '',
+      stateCode: extractStateCode(e.ocdDivisionId ?? ''),
+    }))
+    .sort((a: ElectionSummary, b: ElectionSummary) => a.electionDay.localeCompare(b.electionDay))
 
   await cacheSet(cacheKey, elections, 60 * 60 * 6) // 6 hour cache
   return elections

@@ -1,7 +1,19 @@
 import type { FastifyInstance } from 'fastify'
-import { getBallotForAddress } from '../services/civicApi'
+import { getBallotForAddress, getUpcomingElections } from '../services/civicApi'
 
 export async function ballotRoutes(app: FastifyInstance) {
+  app.get<{ Querystring: { state?: string } }>('/elections', {
+    handler: async (req) => {
+      const elections = await getUpcomingElections()
+      const { state } = req.query
+      if (state) {
+        const code = state.toUpperCase()
+        return { elections: elections.filter(e => e.stateCode === code || e.stateCode === null) }
+      }
+      return { elections }
+    },
+  })
+
   app.post<{ Body: { address: string } }>('/ballot', {
     schema: {
       body: {
