@@ -31,7 +31,7 @@ export const api = {
     request<{ state: string; stateName: string; summary: string; source: string }>(`/ai/county-elections?state=${stateCode}`),
 
   getPollingPlaces: (address: string) =>
-    request<{ places: { name: string; address: string; lat: number; lng: number }[] }>(
+    request<{ coords: { lat: number; lng: number } | null; places: any[] }>(
       `/polling-places?address=${encodeURIComponent(address)}`
     ),
 
