@@ -66,6 +66,13 @@ export default function ElectionsScreen() {
     staleTime: 1000 * 60 * 60,
   })
 
+  const { data: countyData, isLoading: countyLoading } = useQuery({
+    queryKey: ['county-elections', selectedState],
+    queryFn: () => api.getCountyElections(selectedState!),
+    enabled: !!selectedState,
+    staleTime: 1000 * 60 * 60 * 6,
+  })
+
   const today = new Date()
   const allElections = electionsData?.elections ?? []
 
@@ -91,7 +98,7 @@ export default function ElectionsScreen() {
     ...(houseReps.length > 0 ? [{ title: `${selectedState} House (${houseReps.length})`, data: houseReps, type: 'rep' }] : []),
   ]
 
-  const isLoading = electionsLoading || (!!selectedState && repsLoading)
+  const isLoading = electionsLoading || (!!selectedState && repsLoading && countyLoading)
 
   return (
     <View style={styles.container}>
@@ -145,6 +152,21 @@ export default function ElectionsScreen() {
           contentContainerStyle={styles.list}
           ListEmptyComponent={
             <Text style={styles.emptyText}>No data available{selectedState ? ` for ${selectedState}` : ''}.</Text>
+          }
+          ListFooterComponent={
+            selectedState ? (
+              <View style={styles.countyBox}>
+                <Text style={styles.countyTitle}>📍 County & Local Elections in {countyData?.stateName ?? selectedState}</Text>
+                {countyLoading ? (
+                  <ActivityIndicator color="#1e3a5f" style={{ marginTop: 8 }} />
+                ) : countyData?.summary ? (
+                  <>
+                    <Text style={styles.countySummary}>{countyData.summary}</Text>
+                    <Text style={styles.countyDisclaimer}>⚠️ AI-generated summary — verify with your county clerk or Secretary of State website for current schedules.</Text>
+                  </>
+                ) : null}
+              </View>
+            ) : null
           }
         />
       )}
@@ -214,4 +236,12 @@ const styles = StyleSheet.create({
   retryBtn: { backgroundColor: '#1e3a5f', borderRadius: 10, paddingHorizontal: 24, paddingVertical: 12 },
   retryText: { color: '#fff', fontWeight: '600' },
   emptyText: { color: '#94a3b8', fontSize: 15, textAlign: 'center', marginTop: 48 },
+
+  countyBox: {
+    marginTop: 16, backgroundColor: '#f0f9ff', borderRadius: 12,
+    padding: 16, borderWidth: 1, borderColor: '#bae6fd',
+  },
+  countyTitle: { fontSize: 15, fontWeight: '700', color: '#0c4a6e', marginBottom: 8 },
+  countySummary: { fontSize: 13, color: '#0f172a', lineHeight: 20 },
+  countyDisclaimer: { fontSize: 11, color: '#64748b', marginTop: 10, lineHeight: 16, fontStyle: 'italic' },
 })

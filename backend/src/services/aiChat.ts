@@ -20,6 +20,27 @@ export interface ChatMessage {
   content: string
 }
 
+export async function getCountyElectionsSummary(stateCode: string, stateName: string): Promise<string> {
+  const response = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    max_tokens: 600,
+    messages: [
+      {
+        role: 'system',
+        content: `You are a nonpartisan civic information assistant. Provide factual, concise information about local and county-level elections. Always note that users should verify with their county clerk or official state election website for the most current information.`,
+      },
+      {
+        role: 'user',
+        content: `What county, municipal, and local elections typically occur in ${stateName} (${stateCode})? What types of local offices are on the ballot (county commissioners, school boards, judges, sheriffs, etc.)? When do these elections typically happen? Keep the response to 3-4 short paragraphs and end with a reminder to check the official ${stateName} Secretary of State website for current election schedules.`,
+      },
+    ],
+  })
+
+  const text = response.choices[0]?.message?.content
+  if (!text) throw new Error('Empty response from AI')
+  return text
+}
+
 export async function getChatResponse(
   messages: ChatMessage[],
   candidates: CandidateProfile[],
