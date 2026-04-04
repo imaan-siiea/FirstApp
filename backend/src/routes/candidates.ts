@@ -20,6 +20,30 @@ export async function candidateRoutes(app: FastifyInstance) {
     },
   })
 
+  app.get<{ Querystring: { office: string; address: string } }>('/candidates/by-office', {
+    schema: {
+      querystring: {
+        type: 'object',
+        required: ['office', 'address'],
+        properties: {
+          office: { type: 'string' },
+          address: { type: 'string' },
+        },
+      },
+    },
+    handler: async (req, reply) => {
+      try {
+        const all = await getCandidatesForBallot(req.query.address)
+        const forOffice = all.filter(c =>
+          c.office.toLowerCase() === req.query.office.toLowerCase()
+        )
+        return { candidates: forOffice }
+      } catch {
+        return reply.code(503).send({ error: 'Candidate data temporarily unavailable' })
+      }
+    },
+  })
+
   app.get<{ Params: { id: string }; Querystring: { address: string } }>('/candidates/:id', {
     schema: {
       params: { type: 'object', required: ['id'], properties: { id: { type: 'string' } } },

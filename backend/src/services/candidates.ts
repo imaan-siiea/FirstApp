@@ -1,5 +1,14 @@
 import { getBallotForAddress } from './civicApi'
 import { getBallotpediaCandidate } from './ballotpedia'
+import { getEnrichedPhotoUrl, getAiExtractedPositions } from './candidateEnrichment'
+
+export interface CandidatePosition {
+  issue: string
+  position: string
+  source: string
+  year: string
+  confidence: 'high' | 'medium' | 'low'
+}
 
 export interface CandidateProfile {
   id: string
@@ -11,7 +20,7 @@ export interface CandidateProfile {
   bio?: string
   photoUrl?: string
   websiteUrl?: string
-  positions: { issue: string; position: string; source: string }[]
+  positions: CandidatePosition[]
   sources: { name: string; url: string; fetchedAt: string }[]
   dataConfidence: 'high' | 'medium' | 'low'
   lastVerified: string
@@ -19,7 +28,9 @@ export interface CandidateProfile {
 
 export async function getCandidatesForBallot(address: string): Promise<CandidateProfile[]> {
   const ballot = await getBallotForAddress(address)
-  const allCandidates: { name: string; party?: string; candidateUrl?: string; photoUrl?: string; office: string; district: any }[] = []
+  const allCandidates: {
+    name: string; party?: string; candidateUrl?: string; photoUrl?: string; office: string; district: any
+  }[] = []
 
   for (const contest of ballot.contests) {
     if (!contest.candidates) continue
@@ -28,31 +39,38 @@ export async function getCandidatesForBallot(address: string): Promise<Candidate
     }
   }
 
-  // Fetch all Ballotpedia bios in parallel instead of sequential await
-  const bioResults = await Promise.all(
-    allCandidates.map(c => getBallotpediaCandidate(c.name).catch(() => null))
+  const enriched = await Promise.all(
+    allCandidates.map(async (c) => {
+      const [bio, photoUrl] = await Promise.all([
+        getBallotpediaCandidate(c.name).catch(() => null),
+        getEnrichedPhotoUrl(c.name, c.photoUrl).catch(() => c.photoUrl),
+      ])
+
+      const aiPositions = bio?.extract
+        ? await getAiExtractedPositions(c.name, c.office, bio.extract).catch(() => [])
+        : []
+
+      const id = `civic:${c.name.toLowerCase().replace(/\s+/g, '-')}`
+      return {
+        id,
+        name: c.name,
+        office: c.office,
+        state: c.district?.id?.split('/')[2] ?? '',
+        party: c.party,
+        bio: bio?.extract,
+        photoUrl,
+        websiteUrl: c.candidateUrl ?? bio?.fullurl,
+        positions: aiPositions,
+        sources: bio
+          ? [{ name: 'Ballotpedia', url: bio.fullurl, fetchedAt: new Date().toISOString() }]
+          : [],
+        dataConfidence: bio ? ('medium' as const) : ('low' as const),
+        lastVerified: new Date().toISOString(),
+      } satisfies CandidateProfile
+    })
   )
 
-  return allCandidates.map((c, i) => {
-    const bio = bioResults[i]
-    const id = `civic:${c.name.toLowerCase().replace(/\s+/g, '-')}`
-    return {
-      id,
-      name: c.name,
-      office: c.office,
-      state: c.district?.id?.split('/')[2] ?? '',
-      party: c.party,
-      bio: bio?.extract,
-      photoUrl: c.photoUrl,
-      websiteUrl: c.candidateUrl ?? bio?.fullurl,
-      positions: [],
-      sources: bio
-        ? [{ name: 'Ballotpedia', url: bio.fullurl, fetchedAt: new Date().toISOString() }]
-        : [],
-      dataConfidence: bio ? 'medium' : 'low',
-      lastVerified: new Date().toISOString(),
-    }
-  })
+  return enriched
 }
 
 export async function getCandidateById(id: string, address: string): Promise<CandidateProfile | null> {

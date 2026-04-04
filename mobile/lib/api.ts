@@ -31,8 +31,11 @@ export const api = {
       method: 'POST', body: JSON.stringify({ address }),
     }),
 
-  getCandidate: (id: string) =>
-    request<any>(`/candidates/${id}`),
+  getCandidate: (id: string, address: string) =>
+    request<any>(`/candidates/${encodeURIComponent(id)}?address=${encodeURIComponent(address)}`),
+
+  getCandidatesByOffice: (office: string, address: string) =>
+    request<{ candidates: any[] }>(`/candidates/by-office?office=${encodeURIComponent(office)}&address=${encodeURIComponent(address)}`),
 
   chat: (messages: { role: string; content: string }[], address: string) =>
     request<{ answer: string }>('/ai/chat', {

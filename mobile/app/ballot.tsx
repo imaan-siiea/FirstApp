@@ -49,6 +49,9 @@ export default function BallotScreen() {
         <TouchableOpacity onPress={() => router.replace('/')}>
           <Text style={styles.changeText}>Change</Text>
         </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/how-to-vote')}>
+          <Text style={styles.howText}>How to Vote</Text>
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.aiButton} onPress={() => router.push('/chat')}>
@@ -79,6 +82,7 @@ const styles = StyleSheet.create({
   },
   addressText: { color: '#fff', fontSize: 14, flex: 1 },
   changeText: { color: '#93c5fd', fontSize: 14, fontWeight: '600' },
+  howText: { color: '#93c5fd', fontSize: 12, fontWeight: '600', marginLeft: 12 },
   aiButton: {
     margin: 16, backgroundColor: '#4f46e5',
     borderRadius: 12, padding: 16, alignItems: 'center',

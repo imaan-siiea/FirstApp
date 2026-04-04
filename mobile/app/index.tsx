@@ -42,6 +42,10 @@ export default function HomeScreen() {
       <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/registration')}>
         <Text style={styles.secondaryButtonText}>Register to Vote</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/how-to-vote')}>
+        <Text style={styles.secondaryButtonText}>How to Vote →</Text>
+      </TouchableOpacity>
     </View>
   )
 }
