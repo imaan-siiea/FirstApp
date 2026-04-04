@@ -65,3 +65,20 @@ export const refreshTokens = pgTable('refresh_tokens', {
   expiresAt: timestamp('expires_at').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
+
+export const follows = pgTable('follows', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  entityType: text('entity_type').notNull(), // 'politician' | 'state' | 'party'
+  entityId: text('entity_id').notNull(),     // lowercased name or state code
+  entityName: text('entity_name').notNull(), // display name
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+export const pushTokens = pgTable('push_tokens', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  token: text('token').notNull().unique(),
+  platform: text('platform').notNull(), // 'ios' | 'android'
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
