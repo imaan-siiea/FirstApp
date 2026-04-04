@@ -1,14 +1,12 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import Svg, { Path, G } from 'react-native-svg'
 import { geoAlbersUsa, geoPath } from 'd3-geo'
 import { feature } from 'topojson-client'
 
-// Bundled locally — no CDN required, works in Expo Go
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const US_TOPO = require('../assets/states-10m.json')
 
-// FIPS → state abbreviation
 const FIPS: Record<string, string> = {
   '01':'AL','02':'AK','04':'AZ','05':'AR','06':'CA','08':'CO','09':'CT','10':'DE',
   '12':'FL','13':'GA','15':'HI','16':'ID','17':'IL','18':'IN','19':'IA','20':'KS',
@@ -19,7 +17,6 @@ const FIPS: Record<string, string> = {
   '55':'WI','56':'WY',
 }
 
-// 2026 competitiveness colors
 const STATE_COLORS: Record<string, string> = {
   AL:'#7f1d1d',AK:'#7f1d1d',AR:'#7f1d1d',ID:'#7f1d1d',IN:'#7f1d1d',KS:'#7f1d1d',
   KY:'#7f1d1d',LA:'#7f1d1d',MO:'#7f1d1d',MS:'#7f1d1d',MT:'#7f1d1d',ND:'#7f1d1d',
@@ -32,8 +29,13 @@ const STATE_COLORS: Record<string, string> = {
   MD:'#1e3a8a',NJ:'#1e3a8a',NY:'#1e3a8a',RI:'#1e3a8a',VT:'#1e3a8a',WA:'#1e3a8a',
 }
 
-const VIEWPORT_W = 960
-const VIEWPORT_H = 600
+// Standard D3 AlbersUsa viewport — matches the default scale/translate
+const VW = 960
+const VH = 600
+const PAD = 50 // padding around zoomed state
+
+interface VB { x: number; y: number; w: number; h: number }
+const FULL: VB = { x: 0, y: 0, w: VW, h: VH }
 
 interface ElectoralMapProps {
   selectedState: string | null
@@ -42,47 +44,89 @@ interface ElectoralMapProps {
 
 export function ElectoralMap({ selectedState, onSelectState }: ElectoralMapProps) {
   const [viewW, setViewW] = useState(375)
-  const viewH = Math.round(viewW * (VIEWPORT_H / VIEWPORT_W))
+  const viewH = Math.round(viewW * (VH / VW))
 
-  // Pre-compute all SVG paths at 960×600 (memoized — only runs once)
-  const statePaths = useMemo(() => {
+  const [viewBox, setViewBox] = useState<VB>(FULL)
+  const animRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const currentVB = useRef<VB>(FULL)
+
+  // Pre-compute SVG paths + bounding boxes once using correct default AlbersUsa params
+  const { statePaths, stateBounds } = useMemo(() => {
+    // Use geoAlbersUsa() defaults: scale=1070, translate=[480,250]
+    // These are the correct params for a 960×600 viewport
     const projection = geoAlbersUsa()
-      .scale(1280)
-      .translate([VIEWPORT_W / 2, VIEWPORT_H / 2])
-
     const pathGen = geoPath(projection)
-
-    // TopoJSON → GeoJSON
     const geojson = feature(US_TOPO, US_TOPO.objects.states) as unknown as GeoJSON.FeatureCollection
 
-    return geojson.features.map(f => {
+    const paths: { code: string; d: string }[] = []
+    const bounds: Record<string, VB> = {}
+
+    for (const f of geojson.features) {
       const fipsCode = String(f.id).padStart(2, '0')
-      const code = FIPS[fipsCode] ?? ''
-      const d = pathGen(f) ?? ''
-      return { code, d, fipsCode }
-    }).filter(s => s.d && s.code)
+      const code = FIPS[fipsCode]
+      if (!code) continue
+      const d = pathGen(f)
+      if (!d) continue
+      paths.push({ code, d })
+
+      const [[x0, y0], [x1, y1]] = pathGen.bounds(f)
+      bounds[code] = {
+        x: x0 - PAD,
+        y: y0 - PAD,
+        w: (x1 - x0) + PAD * 2,
+        h: (y1 - y0) + PAD * 2,
+      }
+    }
+
+    return { statePaths: paths, stateBounds: bounds }
   }, [])
 
+  // Smooth viewBox animation via lerp
+  useEffect(() => {
+    const target = (selectedState && stateBounds[selectedState]) ? stateBounds[selectedState] : FULL
+
+    if (animRef.current) clearInterval(animRef.current)
+
+    const DURATION = 350 // ms
+    const start = Date.now()
+    const from = { ...currentVB.current }
+
+    animRef.current = setInterval(() => {
+      const t = Math.min((Date.now() - start) / DURATION, 1)
+      // Ease out cubic
+      const e = 1 - Math.pow(1 - t, 3)
+
+      const next: VB = {
+        x: from.x + (target.x - from.x) * e,
+        y: from.y + (target.y - from.y) * e,
+        w: from.w + (target.w - from.w) * e,
+        h: from.h + (target.h - from.h) * e,
+      }
+      currentVB.current = next
+      setViewBox({ ...next })
+
+      if (t >= 1) {
+        clearInterval(animRef.current!)
+        animRef.current = null
+      }
+    }, 16)
+
+    return () => { if (animRef.current) clearInterval(animRef.current) }
+  }, [selectedState, stateBounds])
+
+  const vbString = `${viewBox.x.toFixed(1)} ${viewBox.y.toFixed(1)} ${viewBox.w.toFixed(1)} ${viewBox.h.toFixed(1)}`
+
   return (
-    <View
-      style={styles.wrapper}
-      onLayout={e => setViewW(e.nativeEvent.layout.width)}
-    >
-      <Svg
-        width={viewW}
-        height={viewH}
-        viewBox={`0 0 ${VIEWPORT_W} ${VIEWPORT_H}`}
-        style={styles.svg}
-      >
+    <View style={styles.wrapper} onLayout={e => setViewW(e.nativeEvent.layout.width)}>
+      <Svg width={viewW} height={viewH} viewBox={vbString} style={styles.svg}>
         <G>
           {statePaths.map(({ code, d }) => {
             const isSelected = selectedState === code
-            const fill = isSelected ? '#f59e0b' : (STATE_COLORS[code] ?? '#334155')
             return (
               <Path
                 key={code}
                 d={d}
-                fill={fill}
+                fill={isSelected ? '#f59e0b' : (STATE_COLORS[code] ?? '#334155')}
                 stroke="#0f172a"
                 strokeWidth={isSelected ? 2.5 : 0.7}
                 onPress={() => onSelectState(isSelected ? null : code)}
@@ -92,7 +136,6 @@ export function ElectoralMap({ selectedState, onSelectState }: ElectoralMapProps
         </G>
       </Svg>
 
-      {/* Legend */}
       <View style={styles.legend}>
         {LEGEND.map(item => (
           <View key={item.label} style={styles.legendItem}>
@@ -100,13 +143,12 @@ export function ElectoralMap({ selectedState, onSelectState }: ElectoralMapProps
             <Text style={styles.legendLabel}>{item.label}</Text>
           </View>
         ))}
+        {selectedState && (
+          <TouchableOpacity style={styles.clearBtn} onPress={() => onSelectState(null)}>
+            <Text style={styles.clearText}>✕ {selectedState}</Text>
+          </TouchableOpacity>
+        )}
       </View>
-
-      {selectedState && (
-        <TouchableOpacity style={styles.clearBtn} onPress={() => onSelectState(null)}>
-          <Text style={styles.clearText}>✕ {selectedState}</Text>
-        </TouchableOpacity>
-      )}
     </View>
   )
 }
@@ -124,14 +166,15 @@ const styles = StyleSheet.create({
   svg: { backgroundColor: '#0f172a' },
   legend: {
     flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap',
-    gap: 8, paddingVertical: 6, paddingHorizontal: 8, backgroundColor: '#0f172a',
+    alignItems: 'center', gap: 8, paddingVertical: 6, paddingHorizontal: 8,
+    backgroundColor: '#0f172a',
   },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   legendDot: { width: 9, height: 9, borderRadius: 2 },
   legendLabel: { fontSize: 9, color: '#94a3b8', fontWeight: '700' },
   clearBtn: {
-    alignSelf: 'center', marginBottom: 6, backgroundColor: '#f59e0b',
-    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 4,
+    backgroundColor: '#f59e0b', borderRadius: 10,
+    paddingHorizontal: 10, paddingVertical: 3,
   },
-  clearText: { fontSize: 12, fontWeight: '700', color: '#000' },
+  clearText: { fontSize: 10, fontWeight: '800', color: '#000' },
 })
