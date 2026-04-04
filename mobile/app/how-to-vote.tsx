@@ -1,7 +1,7 @@
 import { ScrollView, View, Text, TouchableOpacity, Linking, StyleSheet, ActivityIndicator } from 'react-native'
 import { router } from 'expo-router'
-import { useQuery } from '@tanstack/react-query'
 import { useAppStore } from '../lib/store'
+import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 
 interface Step {
@@ -9,6 +9,7 @@ interface Step {
   title: string
   body: string
   link?: { label: string; url: string }
+  mapButton?: boolean
 }
 
 export default function HowToVoteScreen() {
@@ -41,6 +42,7 @@ export default function HowToVoteScreen() {
       link: regInfo?.methods?.online?.url
         ? { label: `Find Polling Place in ${stateName}`, url: regInfo.methods.online.url }
         : undefined,
+      mapButton: !!address,
     },
     {
       number: '3',
@@ -89,6 +91,11 @@ export default function HowToVoteScreen() {
             {step.link && (
               <TouchableOpacity onPress={() => Linking.openURL(step.link!.url)}>
                 <Text style={styles.stepLink}>{step.link.label} →</Text>
+              </TouchableOpacity>
+            )}
+            {step.mapButton && (
+              <TouchableOpacity onPress={() => router.push('/polling-map')} style={styles.mapBtn}>
+                <Text style={styles.mapBtnText}>📍 View on Map</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -149,6 +156,8 @@ const styles = StyleSheet.create({
   stepTitle: { fontSize: 15, fontWeight: '700', color: '#0f172a', marginBottom: 4 },
   stepText: { fontSize: 13, color: '#475569', lineHeight: 19 },
   stepLink: { fontSize: 13, color: '#4f46e5', fontWeight: '600', marginTop: 8 },
+  mapBtn: { marginTop: 8, backgroundColor: '#1e3a5f', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, alignSelf: 'flex-start' },
+  mapBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
 
   aiButton: {
     backgroundColor: '#4f46e5',

@@ -33,11 +33,18 @@ export async function geocodeAddress(address: string): Promise<{ lat: number; ln
   }
 }
 
-export async function findNearestPollingPlaces(address: string): Promise<NearbyPlace[]> {
+export interface PollingPlace {
+  name: string
+  address: string
+  lat: number
+  lng: number
+}
+
+export async function findNearestPollingPlaces(address: string): Promise<PollingPlace[]> {
   if (!TOKEN) return []
 
   const cacheKey = `mapbox:polling:${address.toLowerCase().replace(/\s+/g, '-')}`
-  const cached = await cacheGet<NearbyPlace[]>(cacheKey)
+  const cached = await cacheGet<PollingPlace[]>(cacheKey)
   if (cached) return cached
 
   const coords = await geocodeAddress(address)
@@ -54,10 +61,11 @@ export async function findNearestPollingPlaces(address: string): Promise<NearbyP
       },
     }).json<any>()
 
-    const places: NearbyPlace[] = (res.features ?? []).map((f: any) => ({
+    const places: PollingPlace[] = (res.features ?? []).map((f: any) => ({
       name: f.text,
       address: f.place_name,
-      coordinates: f.center as [number, number],
+      lat: f.center[1],
+      lng: f.center[0],
     }))
 
     await cacheSet(cacheKey, places, 60 * 60 * 24)

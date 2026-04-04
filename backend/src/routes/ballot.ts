@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { getBallotForAddress, getUpcomingElections } from '../services/civicApi'
 import { getRepresentativesByState } from '../services/openStates'
+import { findNearestPollingPlaces } from '../services/mapbox'
 
 export async function ballotRoutes(app: FastifyInstance) {
   app.get<{ Querystring: { state?: string } }>('/elections', {
@@ -26,6 +27,24 @@ export async function ballotRoutes(app: FastifyInstance) {
     handler: async (req) => {
       const reps = await getRepresentativesByState(req.query.state)
       return { representatives: reps }
+    },
+  })
+
+  app.get<{ Querystring: { address: string } }>('/polling-places', {
+    schema: {
+      querystring: {
+        type: 'object',
+        required: ['address'],
+        properties: { address: { type: 'string' } },
+      },
+    },
+    handler: async (req, reply) => {
+      try {
+        const places = await findNearestPollingPlaces(req.query.address)
+        return { places }
+      } catch {
+        return reply.code(503).send({ error: 'Polling place lookup unavailable' })
+      }
     },
   })
 

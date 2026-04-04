@@ -30,6 +30,11 @@ export const api = {
   getCountyElections: (stateCode: string) =>
     request<{ state: string; stateName: string; summary: string; source: string }>(`/ai/county-elections?state=${stateCode}`),
 
+  getPollingPlaces: (address: string) =>
+    request<{ places: { name: string; address: string; lat: number; lng: number }[] }>(
+      `/polling-places?address=${encodeURIComponent(address)}`
+    ),
+
   getBallot: (address: string) =>
     request<{ contests: any[]; normalizedAddress: string }>('/ballot', {
       method: 'POST', body: JSON.stringify({ address }),
