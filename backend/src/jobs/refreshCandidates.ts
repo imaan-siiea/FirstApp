@@ -1,4 +1,4 @@
-import { getPeopleByState } from '../services/openStates'
+import { getRepresentativesByState } from '../services/openStates'
 import { getCandidateBio } from '../services/ballotpedia'
 import { db } from '../db'
 import { candidates } from '../db/schema'
@@ -17,7 +17,7 @@ export async function refreshStateLegislators() {
 
   for (const state of US_STATES) {
     try {
-      const people = await getPeopleByState(state)
+      const people = await getRepresentativesByState(state)
       for (const person of people) {
         const bio = await getCandidateBio(person.name)
         await db
@@ -25,12 +25,12 @@ export async function refreshStateLegislators() {
           .values({
             id: person.id,
             name: person.name,
-            office: person.current_role?.title ?? 'State Legislator',
+            office: person.title ?? 'State Legislator',
             state,
-            district: person.current_role?.district,
+            district: person.district,
             party: person.party,
             bio: bio?.extract,
-            photoUrl: person.image,
+            photoUrl: person.imageUrl,
             websiteUrl: bio?.fullurl,
             positionsJson: [],
             sourcesJson: bio

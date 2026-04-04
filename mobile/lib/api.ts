@@ -24,6 +24,9 @@ export const api = {
   getElections: (stateCode?: string) =>
     request<{ elections: any[] }>(`/elections${stateCode ? `?state=${stateCode}` : ''}`),
 
+  getRepresentatives: (stateCode: string) =>
+    request<{ representatives: any[] }>(`/representatives?state=${stateCode}`),
+
   getBallot: (address: string) =>
     request<{ contests: any[]; normalizedAddress: string }>('/ballot', {
       method: 'POST', body: JSON.stringify({ address }),

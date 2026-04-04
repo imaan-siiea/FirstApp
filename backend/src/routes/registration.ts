@@ -24,7 +24,7 @@ export async function registrationRoutes(app: FastifyInstance) {
       },
       handler: async (req, reply) => {
         try {
-          const sites = await findNearestRegistrationSites(req.body.address, req.params.state)
+          const sites = await findNearestRegistrationSites(req.body.address)
           return { sites }
         } catch {
           return reply.code(503).send({ error: 'Location service temporarily unavailable' })

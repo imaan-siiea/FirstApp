@@ -36,6 +36,27 @@ function ElectionCard({ election }: { election: any }) {
   )
 }
 
+const PARTY_COLORS: Record<string, string> = {
+  Democratic: '#2563eb', Republican: '#dc2626',
+  Independent: '#7c3aed', Libertarian: '#f59e0b', Green: '#16a34a',
+}
+
+function RepCard({ rep }: { rep: any }) {
+  const partyColor = PARTY_COLORS[rep.party] ?? '#64748b'
+  return (
+    <View style={repCard.card}>
+      <View style={[repCard.partyBar, { backgroundColor: partyColor }]} />
+      <View style={repCard.body}>
+        <Text style={repCard.name}>{rep.name}</Text>
+        <Text style={repCard.meta}>{rep.title} · District {rep.district}</Text>
+      </View>
+      <View style={[repCard.badge, { backgroundColor: partyColor }]}>
+        <Text style={repCard.badgeText}>{rep.party.slice(0, 1)}</Text>
+      </View>
+    </View>
+  )
+}
+
 export default function BallotScreen() {
   const address = useAppStore((s) => s.address)
   const stateCode = address?.match(/\b([A-Z]{2})\b/)?.[1] ?? null
@@ -46,10 +67,18 @@ export default function BallotScreen() {
     enabled: !!address,
   })
 
+  const noContests = !isLoading && (data?.candidates ?? []).length === 0
+
   const { data: electionsData, isLoading: electionsLoading } = useQuery({
     queryKey: ['elections', stateCode],
     queryFn: () => api.getElections(stateCode ?? undefined),
-    enabled: !!address && !isLoading && (data?.candidates ?? []).length === 0,
+    enabled: !!address && noContests,
+  })
+
+  const { data: repsData, isLoading: repsLoading } = useQuery({
+    queryKey: ['representatives', stateCode],
+    queryFn: () => api.getRepresentatives(stateCode!),
+    enabled: !!stateCode && noContests,
   })
 
   if (!address) {
@@ -70,16 +99,21 @@ export default function BallotScreen() {
 
   const candidates = data?.candidates ?? []
 
-  // No ballot contests — show state + national elections fallback
+  // No ballot contests — show state reps + elections fallback
   if (candidates.length === 0) {
     const elections = electionsData?.elections ?? []
+    const reps = repsData?.representatives ?? []
     const today = new Date()
     const upcoming = elections.filter((e: any) => new Date(e.electionDay) >= today)
     const past = elections.filter((e: any) => new Date(e.electionDay) < today).reverse()
+    const senators = reps.filter((r: any) => r.chamber === 'upper')
+    const houseReps = reps.filter((r: any) => r.chamber === 'lower')
 
-    const sections = [
-      ...(upcoming.length > 0 ? [{ title: 'Upcoming Elections', data: upcoming }] : []),
-      ...(past.length > 0 ? [{ title: 'Recent Elections (Last 2 Years)', data: past }] : []),
+    const sections: { title: string; data: any[]; type: string }[] = [
+      ...(upcoming.length > 0 ? [{ title: 'Upcoming Elections', data: upcoming, type: 'election' }] : []),
+      ...(past.length > 0 ? [{ title: 'Recent Elections (Last 2 Years)', data: past, type: 'election' }] : []),
+      ...(senators.length > 0 ? [{ title: `${stateCode} Senate`, data: senators, type: 'rep' }] : []),
+      ...(houseReps.length > 0 ? [{ title: `${stateCode} House of Representatives`, data: houseReps, type: 'rep' }] : []),
     ]
 
     return (
@@ -94,23 +128,27 @@ export default function BallotScreen() {
         <View style={styles.noContestsBanner}>
           <Text style={styles.noContestsTitle}>No active ballot found for this address</Text>
           <Text style={styles.noContestsSubtitle}>
-            Showing {stateCode ?? 'state'} + national elections from the last 2 years
+            Showing {stateCode ?? 'state'} elections + current legislators
           </Text>
         </View>
 
-        {electionsLoading ? (
+        {(electionsLoading || repsLoading) ? (
           <View style={styles.center}><ActivityIndicator color="#1e3a5f" /></View>
         ) : (
           <SectionList
             sections={sections}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <ElectionCard election={item} />}
+            renderItem={({ item, section }: any) =>
+              section.type === 'election'
+                ? <ElectionCard election={item} />
+                : <RepCard rep={item} />
+            }
             renderSectionHeader={({ section }) => (
               <Text style={styles.sectionHeader}>{section.title}</Text>
             )}
             contentContainerStyle={styles.list}
             ListEmptyComponent={
-              <Text style={styles.emptyText}>No election data found for {stateCode ?? 'this state'}.</Text>
+              <Text style={styles.emptyText}>No data found for {stateCode ?? 'this state'}.</Text>
             }
           />
         )}
@@ -164,6 +202,22 @@ export default function BallotScreen() {
     </View>
   )
 }
+
+const repCard = StyleSheet.create({
+  card: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#fff', borderRadius: 10, marginBottom: 8,
+    overflow: 'hidden',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05, shadowRadius: 2, elevation: 1,
+  },
+  partyBar: { width: 4, alignSelf: 'stretch' },
+  body: { flex: 1, padding: 12 },
+  name: { fontSize: 14, fontWeight: '600', color: '#0f172a', marginBottom: 2 },
+  meta: { fontSize: 12, color: '#64748b' },
+  badge: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  badgeText: { color: '#fff', fontWeight: '800', fontSize: 14 },
+})
 
 const elCard = StyleSheet.create({
   card: {

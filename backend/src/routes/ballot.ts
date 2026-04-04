@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { getBallotForAddress, getUpcomingElections } from '../services/civicApi'
+import { getRepresentativesByState } from '../services/openStates'
 
 export async function ballotRoutes(app: FastifyInstance) {
   app.get<{ Querystring: { state?: string } }>('/elections', {
@@ -11,6 +12,20 @@ export async function ballotRoutes(app: FastifyInstance) {
         return { elections: elections.filter(e => e.stateCode === code || e.stateCode === null) }
       }
       return { elections }
+    },
+  })
+
+  app.get<{ Querystring: { state: string } }>('/representatives', {
+    schema: {
+      querystring: {
+        type: 'object',
+        required: ['state'],
+        properties: { state: { type: 'string' } },
+      },
+    },
+    handler: async (req) => {
+      const reps = await getRepresentativesByState(req.query.state)
+      return { representatives: reps }
     },
   })
 
