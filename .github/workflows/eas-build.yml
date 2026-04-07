@@ -1,9 +1,7 @@
 name: EAS Build
 
 on:
-  push:
-    branches: [main]
-    paths: ['mobile/**']
+  workflow_dispatch:  # manual trigger only — enable when EAS + EXPO_TOKEN are configured
 
 jobs:
   build:
