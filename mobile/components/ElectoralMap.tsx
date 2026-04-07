@@ -70,11 +70,26 @@ export function ElectoralMap({ selectedState, onSelectState }: ElectoralMapProps
       paths.push({ code, d })
 
       const [[x0, y0], [x1, y1]] = pathGen.bounds(f)
+      const cx = (x0 + x1) / 2
+      const cy = (y0 + y1) / 2
+      const stateW = (x1 - x0) + PAD * 2
+      const stateH = (y1 - y0) + PAD * 2
+      const AR = VW / VH // 1.6 — match container so no letterboxing
+
+      let bw: number, bh: number
+      if (stateW / stateH >= AR) {
+        bw = stateW
+        bh = stateW / AR
+      } else {
+        bh = stateH
+        bw = stateH * AR
+      }
+
       bounds[code] = {
-        x: x0 - PAD,
-        y: y0 - PAD,
-        w: (x1 - x0) + PAD * 2,
-        h: (y1 - y0) + PAD * 2,
+        x: cx - bw / 2,
+        y: cy - bh / 2,
+        w: bw,
+        h: bh,
       }
     }
 

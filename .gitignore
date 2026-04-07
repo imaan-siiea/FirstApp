@@ -1,8 +1,12 @@
 # Superpowers brainstorm sessions
 .superpowers/
 
-# Claude Code local settings
+# Claude Code local settings (settings.json may contain API keys in approved commands)
 .claude/settings.local.json
+.claude/settings.json
+
+# Generated / local artifacts
+voteriq-qr.png
 
 # Node / general
 node_modules/

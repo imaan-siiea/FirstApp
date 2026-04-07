@@ -1,8 +1,26 @@
 import { cacheGet, cacheSet } from '../cache'
+import { STATE_LEGISLATORS } from '../data/stateLegislators'
 
 const BASE_URL = 'https://v3.openstates.org'
 const API_KEY = process.env.OPENSTATES_API_KEY ?? ''
-const CACHE_TTL = 60 * 60 * 12 // 12 hours
+const CACHE_TTL = 60 * 60 * 24 * 7 // 7 days — legislators change on election cycles only
+
+// In-memory daily request counter — resets at midnight, caps at 200 to stay under 250/day limit
+let _dailyDate = ''
+let _dailyCount = 0
+const DAILY_LIMIT = 200
+
+function acquireRequest(): boolean {
+  const today = new Date().toISOString().slice(0, 10)
+  if (today !== _dailyDate) { _dailyDate = today; _dailyCount = 0 }
+  if (_dailyCount >= DAILY_LIMIT) return false
+  _dailyCount++
+  return true
+}
+
+export function getDailyRequestCount(): { used: number; limit: number } {
+  return { used: _dailyCount, limit: DAILY_LIMIT }
+}
 
 export interface StateRepresentative {
   id: string
@@ -17,7 +35,14 @@ export interface StateRepresentative {
 }
 
 export async function getRepresentativesByState(stateCode: string): Promise<StateRepresentative[]> {
-  if (!API_KEY) return [] // no key — fails silently
+  const upper = stateCode.toUpperCase()
+
+  // Static file takes priority — zero API calls, zero rate limits
+  const staticData = STATE_LEGISLATORS[upper]
+  if (staticData && staticData.length > 0) return staticData
+
+  // Fall back to live API until the dump script has run
+  if (!API_KEY) return []
 
   const code = stateCode.toLowerCase()
   const cacheKey = `openstates:reps:${code}`
@@ -28,47 +53,47 @@ export async function getRepresentativesByState(stateCode: string): Promise<Stat
 
   for (const chamber of ['upper', 'lower']) {
     try {
-      // Use native fetch — got v14 URL-encodes slashes/colons in jurisdiction causing 400s
-      // per_page max is 50 per OpenStates API
-      const url = `${BASE_URL}/people?jurisdiction=ocd-jurisdiction/country:us/state:${code}/government&org_classification=${chamber}&per_page=50`
-      const res = await fetch(url, { headers: { 'X-API-KEY': API_KEY } })
-      if (res.status === 429) {
-        // Rate limited — wait 6 seconds and retry once
-        await new Promise(r => setTimeout(r, 6000))
-        const retry = await fetch(url, { headers: { 'X-API-KEY': API_KEY } })
-        if (!retry.ok) continue
-        const retryData = await retry.json() as any
-        for (const p of retryData.results ?? []) {
+      let page = 1
+      let maxPage = 1
+
+      while (page <= maxPage && page <= 5) { // cap at 5 pages (250 reps) — enough for any state chamber
+        if (!acquireRequest()) {
+          console.warn(`[OpenStates] Daily cap of ${DAILY_LIMIT} reached — deferring remaining fetches to tomorrow`)
+          break
+        }
+
+        const url = `${BASE_URL}/people?jurisdiction=ocd-jurisdiction/country:us/state:${code}/government&org_classification=${chamber}&per_page=50&page=${page}`
+
+        const res = await fetch(url, { headers: { 'X-API-KEY': API_KEY } })
+
+        if (res.status === 429) {
+          console.warn('[OpenStates] API returned 429 despite counter — daily quota exhausted upstream')
+          break
+        }
+
+        if (!res.ok) break
+
+        const response = await res.json() as any
+        const pagination = response.pagination ?? {}
+        maxPage = pagination.max_page ?? 1
+
+        for (const p of response.results ?? []) {
           const role = p.current_role
           if (!role) continue
           results.push({
-            id: p.id, name: p.name,
+            id: p.id,
+            name: p.name,
             party: typeof p.party === 'string' ? p.party : (p.party?.[0]?.name ?? 'Unknown'),
             title: chamber === 'upper' ? 'Senator' : 'Representative',
-            chamber, district: role.district ?? '',
-            imageUrl: p.image ?? null, profileUrl: (p.links ?? [])[0]?.url ?? null, email: null,
+            chamber,
+            district: role.district ?? '',
+            imageUrl: p.image ?? null,
+            profileUrl: (p.links ?? [])[0]?.url ?? null,
+            email: null,
           })
         }
-        continue
-      }
-      if (!res.ok) continue
-      const response = await res.json() as any
 
-      for (const p of response.results ?? []) {
-        const role = p.current_role
-        if (!role) continue
-
-        results.push({
-          id: p.id,
-          name: p.name,
-          party: typeof p.party === 'string' ? p.party : (p.party?.[0]?.name ?? 'Unknown'),
-          title: chamber === 'upper' ? 'Senator' : 'Representative',
-          chamber,
-          district: role.district ?? '',
-          imageUrl: p.image ?? null,
-          profileUrl: (p.links ?? [])[0]?.url ?? null,
-          email: null,
-        })
+        page++
       }
     } catch {
       continue // one chamber failing shouldn't break the other
@@ -80,6 +105,9 @@ export async function getRepresentativesByState(stateCode: string): Promise<Stat
     return a.name.localeCompare(b.name)
   })
 
-  await cacheSet(cacheKey, results, CACHE_TTL)
+  // Only cache non-empty results — don't persist rate-limit/error empty responses
+  if (results.length > 0) {
+    await cacheSet(cacheKey, results, CACHE_TTL)
+  }
   return results
 }

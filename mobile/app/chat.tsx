@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, FlatList,
-  ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet,
+  ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, SafeAreaView,
 } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 import { useAppStore } from '../lib/store'
@@ -16,12 +16,13 @@ interface Message {
 const INITIAL_MESSAGE: Message = {
   id: '0',
   role: 'assistant',
-  content: "Hi! I'm your nonpartisan ballot guide. Ask me anything about the candidates on your ballot — their positions, backgrounds, or how they differ on issues. I only share verified information from official sources.",
+  content: "Hi! I'm your nonpartisan civic AI guide. Ask me anything about candidates, elections, voting procedures, or civic issues. For ballot-specific results, enter your address on the home screen.",
 }
 
 export default function ChatScreen() {
-  const { candidateName } = useLocalSearchParams<{ candidateName?: string }>()
+  const { candidateName, repContext: repContextStr } = useLocalSearchParams<{ candidateName?: string; repContext?: string }>()
   const address = useAppStore((s) => s.address)
+  const repContext = repContextStr ? JSON.parse(repContextStr) : null
   const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE])
   const [input, setInput] = useState(candidateName ? `Tell me about ${candidateName}` : '')
   const [loading, setLoading] = useState(false)
@@ -29,7 +30,7 @@ export default function ChatScreen() {
 
   async function sendMessage() {
     const text = input.trim()
-    if (!text || loading || !address) return
+    if (!text || loading) return
 
     const userMsg: Message = { id: Date.now().toString(), role: 'user', content: text }
     const updated = [...messages, userMsg]
@@ -40,7 +41,8 @@ export default function ChatScreen() {
     try {
       const { answer } = await api.chat(
         updated.filter(m => m.id !== '0').map(m => ({ role: m.role, content: m.content })),
-        address,
+        address ?? '',
+        repContext,
       )
       setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'assistant', content: answer }])
     } catch {
@@ -55,7 +57,11 @@ export default function ChatScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+    >
       <View style={styles.banner}>
         <Text style={styles.bannerText}>🛡️ Nonpartisan · Sourced · Verified</Text>
       </View>
@@ -65,6 +71,8 @@ export default function ChatScreen() {
         data={messages}
         keyExtractor={(m) => m.id}
         contentContainerStyle={styles.messageList}
+        keyboardShouldPersistTaps="handled"
+        onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
         renderItem={({ item }) => (
           <View style={[styles.bubble, item.role === 'user' ? styles.userBubble : styles.aiBubble]}>
             <Text style={[styles.bubbleText, item.role === 'user' ? styles.userText : styles.aiText]}>

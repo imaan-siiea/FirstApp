@@ -153,8 +153,8 @@ export default function BallotScreen() {
           />
         )}
 
-        <TouchableOpacity style={styles.allElectionsButton} onPress={() => router.push('/elections')}>
-          <Text style={styles.allElectionsText}>🗳️ Browse All National Elections</Text>
+        <TouchableOpacity style={styles.allElectionsButton} onPress={() => router.push('/polls')}>
+          <Text style={styles.allElectionsText}>📊 Explore Election Center</Text>
         </TouchableOpacity>
       </View>
     )

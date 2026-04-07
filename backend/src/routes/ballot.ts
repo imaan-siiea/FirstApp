@@ -2,6 +2,8 @@ import type { FastifyInstance } from 'fastify'
 import { getBallotForAddress, getUpcomingElections } from '../services/civicApi'
 import { getRepresentativesByState } from '../services/openStates'
 import { geocodeAddress } from '../services/mapbox'
+import { FEDERAL_OFFICIALS, getSenatorPhotoUrl } from '../data/federalOfficials'
+import { getWikipediaPhotoUrl } from '../services/wikipediaPhotos'
 
 export async function ballotRoutes(app: FastifyInstance) {
   app.get<{ Querystring: { state?: string } }>('/elections', {
@@ -27,6 +29,34 @@ export async function ballotRoutes(app: FastifyInstance) {
     handler: async (req) => {
       const reps = await getRepresentativesByState(req.query.state)
       return { representatives: reps }
+    },
+  })
+
+  app.get<{ Querystring: { state: string } }>('/federal-officials', {
+    schema: {
+      querystring: {
+        type: 'object',
+        required: ['state'],
+        properties: { state: { type: 'string', minLength: 2, maxLength: 2 } },
+      },
+    },
+    handler: async (req, reply) => {
+      const code = req.query.state.toUpperCase()
+      const officials = FEDERAL_OFFICIALS[code]
+      if (!officials) return reply.code(400).send({ error: 'Unknown state code' })
+
+      const governorPhotoUrl = await getWikipediaPhotoUrl(officials.governor.wikiSlug)
+
+      return {
+        senators: officials.senators.map(s => ({
+          ...s,
+          imageUrl: getSenatorPhotoUrl(s.bioguideId),
+        })),
+        governor: {
+          ...officials.governor,
+          imageUrl: governorPhotoUrl,
+        },
+      }
     },
   })
 
