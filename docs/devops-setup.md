@@ -6,12 +6,19 @@
 **Cache:** Redis 7
 **Deployment:** Coolify (self-hosted on Proxmox)
 **Mobile:** Expo + React Native (deployed via EAS Build → App Store / Google Play)
+**DevOps owner:** **cc-sn** — runs DevOps and deploys on our servers. Items tagged **[CC-SN]** below are yours.
+
+> **Launch context:** This doc covers standing up the **backend + supporting infra**. The end-to-end
+> store-launch plan (Google Play first, App Store next) lives in
+> [`docs/launch/LAUNCH.md`](launch/LAUNCH.md). The backend deploy here is the critical-path
+> dependency for store review — the mobile app is non-functional until `https://api.voteriq.app` is
+> live, and Google rejects non-working apps.
 
 ---
 
 ## Overview
 
-This document is everything your team needs to get VoterIQ running in production. Read the whole thing before starting — the order matters.
+This document is everything cc-sn needs to get VoterIQ running in production. Read the whole thing before starting — the order matters.
 
 ```
 GitHub Repo → GitHub Actions CI → Coolify Webhook → Docker Compose → Live API
@@ -60,7 +67,8 @@ You must obtain ALL of these before the backend will work. None are optional for
 |---------|----------|-----------------|-----------|
 | Google Civic Information API | `GOOGLE_CIVIC_API_KEY` | [console.cloud.google.com](https://console.cloud.google.com) → Enable "Google Civic Information API" | 2,500 req/day free |
 | Groq (AI chat) | `GROQ_API_KEY` | [console.groq.com](https://console.groq.com) | Free (generous limits) |
-| Mapbox (map tiles) | `MAPBOX_ACCESS_TOKEN` | [account.mapbox.com](https://account.mapbox.com) → Access Tokens | 50,000 req/month free |
+| Mapbox (geocoding) | `MAPBOX_ACCESS_TOKEN` | [account.mapbox.com](https://account.mapbox.com) → Access Tokens | 50,000 req/month free |
+| Google Maps Android SDK | `GOOGLE_MAPS_ANDROID_API_KEY` | [console.cloud.google.com](https://console.cloud.google.com) → enable "Maps SDK for Android" | Free (with quota) |
 | OpenStates (state legislators) | `OPENSTATES_API_KEY` | [openstates.org/accounts/profile](https://openstates.org/accounts/profile) | Free with registration |
 | Ballotpedia | `BALLOTPEDIA_API_KEY` | Email api@ballotpedia.org — request research/civic use | Free for civic apps |
 | Expo (app builds) | `EXPO_TOKEN` | [expo.dev](https://expo.dev) → Account → Access Tokens | Free |
@@ -68,6 +76,8 @@ You must obtain ALL of these before the backend will work. None are optional for
 | Google Play | — | [play.google.com/console](https://play.google.com/console) | $25 one-time |
 
 **Note on Ballotpedia:** Email them explaining VoterIQ is a nonpartisan civic app. They typically grant free API access for civic/educational use within a few days.
+
+**Note on the Google Maps key:** Unlike the others, `GOOGLE_MAPS_ANDROID_API_KEY` is a **mobile build-time** key, not a backend env var. It is injected by EAS at build time (see `mobile/app.config.js`) — set it as a project-level EAS environment variable, and **restrict the key** in Google Cloud to package `ai.siiea.voteriq` + the EAS signing SHA-1. It does **not** go in Coolify. See [`docs/launch/LAUNCH.md`](launch/LAUNCH.md) §4.
 
 ---
 
@@ -161,7 +171,7 @@ npm run db:push
 docker exec -it <postgres-container-id> psql -U voteriq -d voteriq -c "\dt"
 ```
 
-You should see these tables:
+You should see these tables (per `backend/src/db/schema.ts`):
 - `users`
 - `user_ballots`
 - `candidates`
@@ -169,6 +179,8 @@ You should see these tables:
 - `state_registration`
 - `election_reminders`
 - `refresh_tokens`
+- `follows`
+- `push_tokens`
 
 ### Ongoing migrations (after schema changes):
 
@@ -200,8 +212,10 @@ Go to **GitHub → Repository → Settings → Secrets and variables → Actions
 | Secret Name | Value |
 |-------------|-------|
 | `COOLIFY_WEBHOOK_URL` | From Coolify: your resource → Deployments → Webhook URL |
-| `COOLIFY_WEBHOOK_TOKEN` | From Coolify: same webhook settings page |
+| `COOLIFY_TOKEN` | From Coolify: same webhook settings page (must match `deploy-backend.yml`) |
 | `EXPO_TOKEN` | Your Expo access token (for mobile builds) |
+
+> **Secret-name check:** `.github/workflows/deploy-backend.yml` reads `secrets.COOLIFY_TOKEN` (not `COOLIFY_WEBHOOK_TOKEN`). Use exactly `COOLIFY_TOKEN` or the deploy step will send an empty auth header.
 
 ### 5c. GitHub Actions Workflows
 
@@ -268,6 +282,35 @@ EAS Build is also triggered automatically by GitHub Actions on every push to `ma
 ### Required for store submission:
 - **iOS:** Apple Developer Program membership ($99/year), App ID, provisioning profiles — EAS handles this automatically with `eas credentials`
 - **Android:** Google Play Console account ($25 one-time), upload key — EAS handles this automatically
+
+### Play submission service account `[CC-SN]`
+
+To let `eas submit --platform android` upload builds, create a Google Play service account and drop
+its JSON key at `mobile/google-service-account.json` (gitignored; referenced by `mobile/eas.json`):
+
+1. Play Console → **Setup → API access** → create/link a Google Cloud service account.
+2. Grant it the **Release** permission for the VoterIQ app.
+3. Download the JSON key → save as `mobile/google-service-account.json` (never commit it).
+
+---
+
+## 7b. Hosting the legal pages (voteriq.app) `[CC-SN]`
+
+Google **requires** a public privacy-policy URL, and the app links to Terms. The pages are written
+and ready in the repo at [`legal/`](../legal/):
+
+| File | Publish at | Required by |
+|------|-----------|-------------|
+| `legal/privacy-policy.html` | `https://voteriq.app/privacy` | Google Play (hard requirement) + App Store |
+| `legal/terms-of-service.html` | `https://voteriq.app/terms` | Store best practice; linked from privacy page |
+
+Any static host works (Coolify static resource, Nginx/Caddy on the same box, or a static CDN). Keep
+the exact paths `/privacy` and `/terms` — they are referenced inside the pages and in the store
+listing. **Point `voteriq.app` DNS to the host and confirm both URLs load over HTTPS before store
+submission** (Play validates the privacy URL during review).
+
+Also ensure the contact aliases used in the pages — `privacy@siiea.ai` and `support@siiea.ai` — are
+real, monitored inboxes (or update the files first).
 
 ---
 
@@ -375,14 +418,19 @@ In Coolify → Your Resource → **Settings**:
 Before going live, confirm:
 
 - [ ] Docker + Docker Compose installed on server
-- [ ] DNS A records pointing to server IP
+- [ ] DNS A records pointing to server IP (`api.voteriq.app` **and** `voteriq.app`)
 - [ ] Coolify installed and accessible
-- [ ] All 6 API keys obtained and added to Coolify env vars
+- [ ] All 5 backend API keys obtained and added to Coolify env vars (Google Civic, Groq, Mapbox, OpenStates, Ballotpedia)
 - [ ] `JWT_SECRET` and `DB_PASSWORD` generated (strong, random)
-- [ ] Database migrations run (`npm run db:push`)
-- [ ] GitHub repository created and secrets added
+- [ ] Database migrations run (`npm run db:push`) → 9 tables present
+- [ ] GitHub repository created and secrets added (note: `COOLIFY_TOKEN`, not `COOLIFY_WEBHOOK_TOKEN`)
 - [ ] GitHub Actions workflows verified (push to main triggers deploy)
-- [ ] SSL certificate provisioned by Coolify
-- [ ] Health check returns `{"status":"ok"}`
-- [ ] Expo project configured for EAS Build
+- [ ] SSL certificate provisioned by Coolify (api + root domain)
+- [ ] Health check returns `{"status":"ok"}` and ballot lookup returns real data
+- [ ] **Legal pages live** at `voteriq.app/privacy` and `voteriq.app/terms` (§7b)
+- [ ] **Google Maps Android key** created, restricted, set as EAS env var (§2 note)
+- [ ] **Play service-account JSON** at `mobile/google-service-account.json` (§7)
+- [ ] Expo project configured for EAS Build (`eas init` → projectId in `app.config.js`)
 - [ ] Apple Developer / Google Play accounts ready for store submission
+
+> Full store-launch sequence and ownership: [`docs/launch/LAUNCH.md`](launch/LAUNCH.md).
