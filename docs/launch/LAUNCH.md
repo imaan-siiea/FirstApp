@@ -115,7 +115,7 @@ Any static host works (Coolify static site, Caddy/Nginx on the same box, Netlify
 inside reference `/privacy` and `/terms`, so keep those paths. **Confirm the URL is live before
 submitting** — Play validates it.
 
-Also: make sure `support@siiea.ai` and `privacy@siiea.ai` are real monitored inboxes (or change them
+Also: make sure `imaan@siiea.ai` and `imaan@siiea.ai` are real monitored inboxes (or change them
 in the legal files + listing).
 
 ---

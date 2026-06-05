@@ -15,7 +15,7 @@ handling changes.
 |---|---|
 | Does your app collect or share any of the required user data types? | **Yes** |
 | Is all user data encrypted in transit? | **Yes** (HTTPS/TLS for all API traffic; auth tokens stored with `expo-secure-store`) |
-| Do you provide a way for users to request that their data is deleted? | **Yes** — account deletion on request via `privacy@siiea.ai` (see note in Launch runbook about wiring an in-app/endpoint delete before scale) |
+| Do you provide a way for users to request that their data is deleted? | **Yes** — account deletion on request via `imaan@siiea.ai` (see note in Launch runbook about wiring an in-app/endpoint delete before scale) |
 
 ---
 

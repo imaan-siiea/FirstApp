@@ -68,4 +68,4 @@ at `https://api.voteriq.app` before Google reviews the app (they run it during r
 - Backend **must** be live for Google review (non-functional apps are rejected).
 - Maps key must be present + correctly restricted, or the Android map renders blank.
 - Data Safety claims deletion-on-request; that's a manual email flow today — add a self-serve delete before scale (Claude can build).
-- Confirm `support@siiea.ai` / `privacy@siiea.ai` are monitored inboxes.
+- Confirm `imaan@siiea.ai` / `imaan@siiea.ai` are monitored inboxes.

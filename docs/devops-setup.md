@@ -309,7 +309,7 @@ the exact paths `/privacy` and `/terms` — they are referenced inside the pages
 listing. **Point `voteriq.app` DNS to the host and confirm both URLs load over HTTPS before store
 submission** (Play validates the privacy URL during review).
 
-Also ensure the contact aliases used in the pages — `privacy@siiea.ai` and `support@siiea.ai` — are
+Also ensure the contact aliases used in the pages — `imaan@siiea.ai` and `imaan@siiea.ai` — are
 real, monitored inboxes (or update the files first).
 
 ---

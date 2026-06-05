@@ -66,7 +66,7 @@ Free to use. Made for voters who want to walk in informed.
 |---|---|
 | **App category** | Choose **News & Magazines** *(or **Education**)* — civic-info apps fit either; News & Magazines is the closest match for an election guide |
 | **Tags** | voting, elections, civic, ballot, candidates |
-| **Contact email** | `support@siiea.ai` |
+| **Contact email** | `imaan@siiea.ai` |
 | **Contact website** | `https://voteriq.app` |
 | **Privacy policy** | `https://voteriq.app/privacy` |
 
@@ -89,7 +89,7 @@ Free to use. Made for voters who want to walk in informed.
 ---
 
 ## Notes / decisions to confirm
-- **Contact emails**: `support@siiea.ai` and `privacy@siiea.ai` are referenced in the listing and
+- **Contact emails**: `imaan@siiea.ai` and `imaan@siiea.ai` are referenced in the listing and
   legal pages — make sure both are real, monitored aliases (or swap to `imran@siiea.ai`).
 - **Category**: pick News & Magazines vs Education before submitting.
 - Listing copy is intentionally nonpartisan and avoids any claim of government affiliation (Play
