@@ -76,10 +76,15 @@ Free to use. Made for voters who want to walk in informed.
 
 | Asset | Spec | Status |
 |---|---|---|
-| App icon | 512×512 PNG, 32-bit | ✅ have `assets/icon.png` (1024×1024) — Play accepts and downscales; a 512×512 export is ideal |
-| Feature graphic | **1024×500 PNG/JPG** (required) | ❌ **needs to be created** — banner shown atop the listing |
+| App icon | 512×512 PNG, 32-bit | ✅ **done** — `store-assets/google/play-store-icon-512.png` (and `mobile/assets/icon.png` @1024 in-app) |
+| Feature graphic | **1024×500 PNG/JPG** (required) | ✅ **done** — `store-assets/google/feature-graphic-1024x500.png` |
 | Phone screenshots | 2–8 images, 16:9 or 9:16, min 320px, max 3840px | ❌ **needs capture** — see runbook (home → ballot → candidate → AI chat → polling map → registration) |
 | 7" / 10" tablet screenshots | Optional | ⚪ optional (app supports tablets; nice-to-have) |
+
+> **Brand assets generated 2026-06-07.** VoterIQ mark = ballot-bubble ring + bold check flicking
+> into a gold star (nonpartisan), on deep-navy `#1e3a5f`. Editable SVG sources live in
+> `store-assets/source/`. In-app icons (`mobile/assets/icon.png`, `adaptive-icon.png`,
+> `splash-icon.png`, `favicon.png`) were regenerated from the same mark.
 
 > **Screenshot tip:** capture against the live `api.voteriq.app` backend so real ballot/candidate
 > data shows. Suggested 6 shots: (1) home/address entry, (2) ballot list, (3) candidate profile,

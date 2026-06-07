@@ -1,0 +1,19 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd66b"/>
+      <stop offset="1" stop-color="#f1a73a"/>
+    </linearGradient>
+  </defs>
+  <!-- transparent background; Android paints #1e3a5f behind this foreground.
+       Content scaled into the central safe zone so launcher masks never crop it. -->
+  <g transform="translate(512,512) scale(0.66) translate(-512,-512)">
+    <circle cx="512" cy="512" r="300" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="34"/>
+    <circle cx="512" cy="512" r="232" fill="#ffffff" fill-opacity="0.07"/>
+    <path d="M 372 520 L 470 624 L 668 400"
+          fill="none" stroke="#ffffff" stroke-width="84"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <path fill="url(#gold)" d="M 720 242
+          l 26 53 58 8 -42 41 10 58 -52 -27 -52 27 10 -58 -42 -41 58 -8 z"/>
+  </g>
+</svg>

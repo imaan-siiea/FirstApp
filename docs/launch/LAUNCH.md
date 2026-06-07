@@ -139,8 +139,8 @@ prompt to generate the Android keystore — let EAS manage it.
 
 From [`docs/launch/google-play-store-listing.md`](google-play-store-listing.md):
 
-- ✅ App icon (have 1024×1024; a 512×512 export is ideal)
-- ❌ **Feature graphic 1024×500** — needs design (I can generate a branded one on request)
+- ✅ App icon — branded VoterIQ mark generated (`mobile/assets/icon.png` @1024, `store-assets/google/play-store-icon-512.png` @512); in-app adaptive/splash/favicon regenerated too
+- ✅ **Feature graphic 1024×500** — `store-assets/google/feature-graphic-1024x500.png` (editable SVG sources in `store-assets/source/`)
 - ❌ **2–8 phone screenshots** — capture against live backend (home → ballot → candidate → AI chat →
   map → registration). Easiest via Android emulator or a dev build once the backend is live.
 
@@ -210,18 +210,18 @@ set). When ready:
 
 ## 11. Quick status board
 
-| # | Item | Owner | Status |
-|---|------|-------|--------|
+| Item | Owner | Status |
+|------|-------|--------|
 | Code build-readiness (typecheck, bundle, `npm ci`) | — | `[DONE]` ✅ |
 | Mobile launch config (`app.config.js`, permissions, versionCode) | — | `[DONE]` ✅ |
 | Privacy policy + Terms (content) | CLAUDE | `[DONE]` ✅ |
 | Data Safety answers + content rating | CLAUDE | `[DONE]` ✅ (entry pending account) |
 | Store listing copy | CLAUDE | `[DONE]` ✅ |
+| App icon + feature graphic (brand assets) | CLAUDE | `[DONE]` ✅ |
 | Backend deployed @ api.voteriq.app | CC-SN | ⬜ |
 | Legal pages hosted @ voteriq.app | CC-SN | ⬜ |
 | Expo login + `eas init` (projectId) | IMRAN | ⬜ |
 | Google Maps Android key | IMRAN/CC-SN | ⬜ |
-| Feature graphic (1024×500) | IMRAN/CLAUDE | ⬜ |
 | Phone screenshots (2–8) | IMRAN | ⬜ |
 | EAS production AAB build | IMRAN | ⬜ |
 | Play Console: listing + Data Safety + upload | IMRAN | ⬜ |
