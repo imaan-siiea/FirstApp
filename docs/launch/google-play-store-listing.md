@@ -78,8 +78,14 @@ Free to use. Made for voters who want to walk in informed.
 |---|---|---|
 | App icon | 512×512 PNG, 32-bit | ✅ **done** — `store-assets/google/play-store-icon-512.png` (and `mobile/assets/icon.png` @1024 in-app) |
 | Feature graphic | **1024×500 PNG/JPG** (required) | ✅ **done** — `store-assets/google/feature-graphic-1024x500.png` |
-| Phone screenshots | 2–8 images, 16:9 or 9:16, min 320px, max 3840px | ❌ **needs capture** — see runbook (home → ballot → candidate → AI chat → polling map → registration) |
-| 7" / 10" tablet screenshots | Optional | ⚪ optional (app supports tablets; nice-to-have) |
+| Phone screenshots | 2–8 images, 16:9 or 9:16, min 320px, max 3840px | ✅ **done** — 5 designed mockups (1080×1920) in `store-assets/google/phone-screenshots/` (home, ballot, candidate, AI chat, register) |
+| 7" / 10" tablet screenshots | Optional | ⚪ skipped (optional; not a submission blocker) |
+
+> **Phone screenshots are designed "framed mockups"** (device frame + caption + faithfully
+> reconstructed UI from the real screen code, with neutral sample civic data) — the standard,
+> Play-compliant approach. They reflect the actual app. Optionally swap in real device captures
+> once the backend is live, for maximum fidelity. Editable sources + generator:
+> `store-assets/source/gen_screens.py` and `shot-*.svg`.
 
 > **Brand assets generated 2026-06-07.** VoterIQ mark = ballot-bubble ring + bold check flicking
 > into a gold star (nonpartisan), on deep-navy `#1e3a5f`. Editable SVG sources live in

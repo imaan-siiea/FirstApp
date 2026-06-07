@@ -141,8 +141,9 @@ From [`docs/launch/google-play-store-listing.md`](google-play-store-listing.md):
 
 - ✅ App icon — branded VoterIQ mark generated (`mobile/assets/icon.png` @1024, `store-assets/google/play-store-icon-512.png` @512); in-app adaptive/splash/favicon regenerated too
 - ✅ **Feature graphic 1024×500** — `store-assets/google/feature-graphic-1024x500.png` (editable SVG sources in `store-assets/source/`)
-- ❌ **2–8 phone screenshots** — capture against live backend (home → ballot → candidate → AI chat →
-  map → registration). Easiest via Android emulator or a dev build once the backend is live.
+- ✅ **Phone screenshots (5)** — designed framed mockups in `store-assets/google/phone-screenshots/`
+  (home, ballot, candidate, AI chat, register; faithful to the real screens, neutral sample data).
+  Optionally swap in real device captures once the backend is live. Tablet shots skipped (optional).
 
 ---
 
