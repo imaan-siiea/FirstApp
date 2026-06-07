@@ -79,7 +79,7 @@ Free to use. Made for voters who want to walk in informed.
 | App icon | 512×512 PNG, 32-bit | ✅ **done** — `store-assets/google/play-store-icon-512.png` (and `mobile/assets/icon.png` @1024 in-app) |
 | Feature graphic | **1024×500 PNG/JPG** (required) | ✅ **done** — `store-assets/google/feature-graphic-1024x500.png` |
 | Phone screenshots | 2–8 images, 16:9 or 9:16, min 320px, max 3840px | ✅ **done** — 5 designed mockups (1080×1920) in `store-assets/google/phone-screenshots/` (home, ballot, candidate, AI chat, register) |
-| 7" / 10" tablet screenshots | Optional | ⚪ skipped (optional; not a submission blocker) |
+| 7" & 10" tablet screenshots | **Required** (app declares tablet support); 16:9 or 9:16, 10" side ≥1080px | ✅ **done** — 5 mockups (1620×2880, exactly 9:16) in `store-assets/google/tablet-screenshots/`. **Upload the same set to BOTH the 7-inch and 10-inch slots** (dims satisfy both). |
 
 > **Phone screenshots are designed "framed mockups"** (device frame + caption + faithfully
 > reconstructed UI from the real screen code, with neutral sample civic data) — the standard,

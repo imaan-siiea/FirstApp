@@ -3,10 +3,14 @@
 # Each = marketing caption + device frame + faithful reconstruction of the real screen.
 import html
 
-CANVAS_W, CANVAS_H = 1080, 1920
-# device frame
-BEZEL_X, BEZEL_Y, BEZEL_W, BEZEL_H, BEZEL_R = 190, 316, 700, 1520, 70
-SCR_X, SCR_Y, SCR_W, SCR_H, SCR_R = 210, 336, 660, 1480, 52
+# Per-device geometry. Inner screen content is always authored in a 660x1480
+# local box; for tablets we scale that box up and center it on a larger 9:16 canvas.
+GEO = {
+    "phone": dict(CW=1080, CH=1920, SX=210, SY=336, S=1.0,
+                  BZ=(190, 316, 700, 1520, 70), CAP=(150, 58, 214, 30), NOTCH=22),
+    "tablet": dict(CW=1620, CH=2880, SX=420, SY=660, S=1.18,
+                   BZ=(392, 632, 836, 1802, 84), CAP=(250, 86, 332, 44), NOTCH=28),
+}
 
 def esc(s): return html.escape(str(s), quote=True)
 
@@ -259,8 +263,13 @@ def screen_register():
     return "".join(o)
 
 # -------------------- FRAME --------------------
-def frame(caption, sub, inner):
-    return f'''<svg width="{CANVAS_W}" height="{CANVAS_H}" viewBox="0 0 {CANVAS_W} {CANVAS_H}" xmlns="http://www.w3.org/2000/svg">
+def frame(caption, sub, inner, device="phone"):
+    g = GEO[device]
+    CW, CH, SX, SY, S = g["CW"], g["CH"], g["SX"], g["SY"], g["S"]
+    bx, by, bw, bh, br = g["BZ"]
+    cap_y, cap_sz, sub_y, sub_sz = g["CAP"]
+    SW, SH, SR = 660*S, 1480*S, 52*S
+    return f'''<svg width="{CW}" height="{CH}" viewBox="0 0 {CW} {CH}" xmlns="http://www.w3.org/2000/svg">
 <defs>
   <linearGradient id="pageGrad" x1="0" y1="0" x2="1" y2="1">
     <stop offset="0" stop-color="#274b75"/><stop offset="1" stop-color="#11233d"/>
@@ -268,23 +277,23 @@ def frame(caption, sub, inner):
   <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
     <stop offset="0" stop-color="#274b75"/><stop offset="1" stop-color="#1e3a5f"/>
   </linearGradient>
-  <clipPath id="screenClip"><rect x="{SCR_X}" y="{SCR_Y}" width="{SCR_W}" height="{SCR_H}" rx="{SCR_R}"/></clipPath>
+  <clipPath id="screenClip"><rect x="{SX}" y="{SY}" width="{SW}" height="{SH}" rx="{SR}"/></clipPath>
   <filter id="ds" x="-20%" y="-20%" width="140%" height="140%">
     <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#000000" flood-opacity="0.28"/>
   </filter>
 </defs>
-<rect width="{CANVAS_W}" height="{CANVAS_H}" fill="url(#pageGrad)"/>
-<circle cx="960" cy="120" r="200" fill="#ffffff" fill-opacity="0.04"/>
-<circle cx="120" cy="1820" r="180" fill="#ffffff" fill-opacity="0.04"/>
-{T(CANVAS_W/2, 150, caption, 58, "#ffffff", 800, "middle", -1)}
-{T(CANVAS_W/2, 214, sub, 30, "#ffd66b", 500, "middle")}
+<rect width="{CW}" height="{CH}" fill="url(#pageGrad)"/>
+<circle cx="{CW*0.89}" cy="{CH*0.06}" r="{CW*0.19}" fill="#ffffff" fill-opacity="0.04"/>
+<circle cx="{CW*0.11}" cy="{CH*0.95}" r="{CW*0.17}" fill="#ffffff" fill-opacity="0.04"/>
+{T(CW/2, cap_y, caption, cap_sz, "#ffffff", 800, "middle", -1)}
+{T(CW/2, sub_y, sub, sub_sz, "#ffd66b", 500, "middle")}
 <g filter="url(#ds)">
-  <rect x="{BEZEL_X}" y="{BEZEL_Y}" width="{BEZEL_W}" height="{BEZEL_H}" rx="{BEZEL_R}" fill="#0b1828"/>
+  <rect x="{bx}" y="{by}" width="{bw}" height="{bh}" rx="{br}" fill="#0b1828"/>
 </g>
-<rect x="{SCR_X}" y="{SCR_Y}" width="{SCR_W}" height="{SCR_H}" rx="{SCR_R}" fill="#ffffff"/>
-<g clip-path="url(#screenClip)"><g transform="translate({SCR_X},{SCR_Y})">{inner}</g></g>
-<rect x="{BEZEL_X}" y="{BEZEL_Y}" width="{BEZEL_W}" height="{BEZEL_H}" rx="{BEZEL_R}" fill="none" stroke="#000000" stroke-opacity="0.25" stroke-width="2"/>
-<rect x="{SCR_X+SCR_W/2-70}" y="{BEZEL_Y+22}" width="140" height="10" rx="5" fill="#0b1828"/>
+<rect x="{SX}" y="{SY}" width="{SW}" height="{SH}" rx="{SR}" fill="#ffffff"/>
+<g clip-path="url(#screenClip)"><g transform="translate({SX},{SY}) scale({S})">{inner}</g></g>
+<rect x="{bx}" y="{by}" width="{bw}" height="{bh}" rx="{br}" fill="none" stroke="#000000" stroke-opacity="0.25" stroke-width="2"/>
+<rect x="{SX+SW/2-70}" y="{by+g['NOTCH']}" width="140" height="10" rx="5" fill="#0b1828"/>
 </svg>'''
 
 SCREENS = [
@@ -295,8 +304,11 @@ SCREENS = [
     ("05-register",   "Register & never miss a date",  "Official state deadlines, methods & links",        screen_register),
 ]
 
+import sys
+device = sys.argv[1] if len(sys.argv) > 1 else "phone"
+prefix = "shot" if device == "phone" else "tablet"
 for slug, cap, sub, fn in SCREENS:
-    svg = frame(cap, sub, fn())
-    with open(f"/tmp/voteriq-art/shot-{slug}.svg", "w") as f:
+    svg = frame(cap, sub, fn(), device)
+    with open(f"/tmp/voteriq-art/{prefix}-{slug}.svg", "w") as f:
         f.write(svg)
-    print("wrote", slug)
+    print("wrote", device, slug)

@@ -143,7 +143,10 @@ From [`docs/launch/google-play-store-listing.md`](google-play-store-listing.md):
 - ✅ **Feature graphic 1024×500** — `store-assets/google/feature-graphic-1024x500.png` (editable SVG sources in `store-assets/source/`)
 - ✅ **Phone screenshots (5)** — designed framed mockups in `store-assets/google/phone-screenshots/`
   (home, ballot, candidate, AI chat, register; faithful to the real screens, neutral sample data).
-  Optionally swap in real device captures once the backend is live. Tablet shots skipped (optional).
+  Optionally swap in real device captures once the backend is live.
+- ✅ **Tablet screenshots (5)** — `store-assets/google/tablet-screenshots/` (1620×2880, 9:16). Google
+  marks 7" + 10" as **required** because the app declares tablet support. Upload the same 5 to BOTH
+  the 7-inch and 10-inch slots (dimensions satisfy both).
 
 ---
 
