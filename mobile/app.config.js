@@ -3,7 +3,7 @@
 // profile (set GOOGLE_MAPS_ANDROID_API_KEY in eas.json env or as an EAS secret).
 //
 // The Maps key is NOT a true secret — it ships inside the APK — so it must be
-// restricted by Android package name (ai.siiea.voteriq) + signing SHA-1 in the
+// restricted by Android package name (app.voteriq) + signing SHA-1 in the
 // Google Cloud Console. Env injection just keeps it out of git and lets staging
 // and production use different keys.
 
@@ -24,7 +24,7 @@ module.exports = () => ({
     },
     ios: {
       supportsTablet: true,
-      bundleIdentifier: 'ai.siiea.voteriq',
+      bundleIdentifier: 'app.voteriq',
       buildNumber: '1',
       config: {
         usesNonExemptEncryption: false,
@@ -38,7 +38,7 @@ module.exports = () => ({
         foregroundImage: './assets/adaptive-icon.png',
         backgroundColor: '#1e3a5f',
       },
-      package: 'ai.siiea.voteriq',
+      package: 'app.voteriq',
       versionCode: 1,
       edgeToEdgeEnabled: true,
       permissions: ['INTERNET'],
