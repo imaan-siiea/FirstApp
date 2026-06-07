@@ -94,8 +94,8 @@ Free to use. Made for voters who want to walk in informed.
 ---
 
 ## Notes / decisions to confirm
-- **Contact emails**: `imaan@siiea.ai` and `imaan@siiea.ai` are referenced in the listing and
-  legal pages — make sure both are real, monitored aliases (or swap to `imran@siiea.ai`).
+- **Contact email**: `imaan@siiea.ai` is referenced in the listing and legal pages — make sure it's
+  a real, monitored inbox.
 - **Category**: pick News & Magazines vs Education before submitting.
 - Listing copy is intentionally nonpartisan and avoids any claim of government affiliation (Play
   reviews election/government apps strictly — see the runbook's review-risk section).

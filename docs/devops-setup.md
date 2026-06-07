@@ -77,7 +77,7 @@ You must obtain ALL of these before the backend will work. None are optional for
 
 **Note on Ballotpedia:** Email them explaining VoterIQ is a nonpartisan civic app. They typically grant free API access for civic/educational use within a few days.
 
-**Note on the Google Maps key:** Unlike the others, `GOOGLE_MAPS_ANDROID_API_KEY` is a **mobile build-time** key, not a backend env var. It is injected by EAS at build time (see `mobile/app.config.js`) — set it as a project-level EAS environment variable, and **restrict the key** in Google Cloud to package `ai.siiea.voteriq` + the EAS signing SHA-1. It does **not** go in Coolify. See [`docs/launch/LAUNCH.md`](launch/LAUNCH.md) §4.
+**Note on the Google Maps key:** Unlike the others, `GOOGLE_MAPS_ANDROID_API_KEY` is a **mobile build-time** key, not a backend env var. It is injected by EAS at build time (see `mobile/app.config.js`) — set it as a project-level EAS environment variable, and **restrict the key** in Google Cloud to package `app.voteriq` + the EAS signing SHA-1. It does **not** go in Coolify. See [`docs/launch/LAUNCH.md`](launch/LAUNCH.md) §4.
 
 ---
 

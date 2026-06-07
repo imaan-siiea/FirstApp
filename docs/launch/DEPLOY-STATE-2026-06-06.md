@@ -33,6 +33,6 @@ Coolify build + CF Tunnel + verify (cc-sn-owned) then the Play submission (Imran
   live on Stalwart CT722 per noreply-vault@; provisioning imaan@ is likely possible — verify.)
 - EAS: `eas login`/`eas init` → projectId into app.config.js; production AAB build.
 - Play Console: listing, Data Safety form, AAB upload, feature graphic 1024×500 + 2–8 screenshots.
-- Google Maps Android key (his GCP, restrict to ai.siiea.voteriq + EAS SHA-1) → EAS env + Vault.
+- Google Maps Android key (his GCP, restrict to app.voteriq + EAS SHA-1) → EAS env + Vault.
 - Play service-account JSON → mobile/google-service-account.json (gitignored) for `eas submit`.
 - Ballotpedia key (email-approved) — optional, enrichment only.

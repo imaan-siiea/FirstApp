@@ -60,7 +60,7 @@ through the value-stripping filter (per the env-echo-leak postmortem).
 
 ## cc-sn store-side prep (not Coolify)
 
-- **Google Maps Android key:** create in Imran's Google Cloud, restrict to package `ai.siiea.voteriq` +
+- **Google Maps Android key:** create in Imran's Google Cloud, restrict to package `app.voteriq` +
   the EAS signing SHA-1 (`eas credentials`), set as EAS env `GOOGLE_MAPS_ANDROID_API_KEY`. → Vault.
 - **Play service-account JSON** → `mobile/google-service-account.json` (gitignored) for `eas submit`.
 

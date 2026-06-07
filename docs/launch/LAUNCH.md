@@ -93,7 +93,7 @@ map is blank (and Play reviewers will see a broken screen).
 
 1. Google Cloud Console → enable **Maps SDK for Android**.
 2. Create an API key, **restrict it** to Android apps with:
-   - package name `ai.siiea.voteriq`
+   - package name `app.voteriq`
    - the signing SHA-1 from `eas credentials` (EAS-managed upload/app-signing key)
 3. Provide it to the build as an EAS env var named `GOOGLE_MAPS_ANDROID_API_KEY` (project-level EAS
    environment variable / secret). `app.config.js` already reads it.
@@ -115,8 +115,8 @@ Any static host works (Coolify static site, Caddy/Nginx on the same box, Netlify
 inside reference `/privacy` and `/terms`, so keep those paths. **Confirm the URL is live before
 submitting** — Play validates it.
 
-Also: make sure `imaan@siiea.ai` and `imaan@siiea.ai` are real monitored inboxes (or change them
-in the legal files + listing).
+Also: make sure `imaan@siiea.ai` is a real monitored inbox — it's the contact used in the legal
+files and the store listing.
 
 ---
 
@@ -177,7 +177,7 @@ eas submit --platform android --profile production
 
 ## 9. After Google: Apple App Store  `[LATER]`
 
-The app is already configured for iOS (`bundleIdentifier ai.siiea.voteriq`, encryption-exempt flags
+The app is already configured for iOS (`bundleIdentifier app.voteriq`, encryption-exempt flags
 set). When ready:
 
 1. `[IMRAN]` Apple Developer Program enrollment ($99/yr) — **start early, enrollment can take days**.
