@@ -118,7 +118,8 @@ export async function checkAndNotifyFollows(
     }
 
     // Check for per-token errors (e.g. DeviceNotRegistered)
-    const result = await res.json().catch(() => null)
+    type ExpoTicket = { status: string; details?: { error?: string } }
+    const result = (await res.json().catch(() => null)) as { data?: ExpoTicket[] } | null
     if (result?.data) {
       const invalidTokens: string[] = []
       for (let i = 0; i < result.data.length; i++) {
