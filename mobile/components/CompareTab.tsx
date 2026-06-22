@@ -39,7 +39,7 @@ export function CompareTab({ currentCandidate, address }: Props) {
   const sharedIssues = selected
     ? Array.from(new Set([
         ...currentCandidate.positions.map(p => p.issue),
-        ...selected.positions.map(p => p.issue),
+        ...selected.positions.map((p: Position) => p.issue),
       ]))
     : []
 
@@ -89,7 +89,7 @@ export function CompareTab({ currentCandidate, address }: Props) {
           ) : (
             sharedIssues.map(issue => {
               const leftPos = currentCandidate.positions.find(p => p.issue === issue)
-              const rightPos = selected.positions.find(p => p.issue === issue)
+              const rightPos = selected.positions.find((p: Position) => p.issue === issue)
               return (
                 <View key={issue} style={styles.issueBlock}>
                   <Text style={styles.issueTitle}>{issue}</Text>

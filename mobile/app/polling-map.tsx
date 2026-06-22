@@ -100,8 +100,6 @@ export default function PollingMapScreen() {
             style={styles.map}
             provider={PROVIDER_DEFAULT}
             region={region}
-            showsUserLocation
-            showsMyLocationButton
           >
             {coords && (
               <Marker

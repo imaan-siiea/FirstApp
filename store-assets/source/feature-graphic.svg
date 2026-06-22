@@ -1,0 +1,37 @@
+<svg width="1024" height="500" viewBox="0 0 1024 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#274b75"/>
+      <stop offset="1" stop-color="#132945"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd66b"/>
+      <stop offset="1" stop-color="#f1a73a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="500" fill="url(#bg)"/>
+
+  <!-- subtle decorative rings on the right -->
+  <circle cx="930" cy="80" r="180" fill="#ffffff" fill-opacity="0.04"/>
+  <circle cx="60" cy="470" r="150" fill="#ffffff" fill-opacity="0.04"/>
+
+  <!-- mark on the left -->
+  <g transform="translate(250,250) scale(0.40) translate(-512,-512)">
+    <circle cx="512" cy="512" r="300" fill="none" stroke="#ffffff" stroke-opacity="0.20" stroke-width="34"/>
+    <circle cx="512" cy="512" r="232" fill="#ffffff" fill-opacity="0.08"/>
+    <path d="M 372 520 L 470 624 L 668 400"
+          fill="none" stroke="#ffffff" stroke-width="84"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <path fill="url(#gold)" d="M 720 242
+          l 26 53 58 8 -42 41 10 58 -52 -27 -52 27 10 -58 -42 -41 58 -8 z"/>
+  </g>
+
+  <!-- wordmark + tagline on the right -->
+  <text x="470" y="232" font-family="Helvetica, Arial, sans-serif" font-weight="700"
+        font-size="118" letter-spacing="-3" fill="#ffffff">VoterIQ</text>
+  <text x="474" y="300" font-family="Helvetica, Arial, sans-serif" font-weight="500"
+        font-size="40" letter-spacing="0.5" fill="#ffd66b">See your ballot. Ask anything.</text>
+  <text x="474" y="352" font-family="Helvetica, Arial, sans-serif" font-weight="400"
+        font-size="30" letter-spacing="0.5" fill="#cdd9e8">Free &amp; nonpartisan civic ballot guide</text>
+</svg>
