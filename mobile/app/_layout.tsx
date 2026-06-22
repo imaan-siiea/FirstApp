@@ -1,12 +1,22 @@
+import { useEffect } from 'react'
 import { Stack } from 'expo-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { useAppStore } from '../lib/store'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2, staleTime: 1000 * 60 * 5 } },
 })
 
 export default function RootLayout() {
+  const hydrate = useAppStore((s) => s.hydrate)
+
+  useEffect(() => {
+    hydrate()
+  }, [hydrate])
+
   return (
+    <SafeAreaProvider>
     <QueryClientProvider client={queryClient}>
       <Stack
         screenOptions={{
@@ -22,8 +32,8 @@ export default function RootLayout() {
         <Stack.Screen name="ballot" options={{ title: 'Your Ballot', animation: 'slide_from_right' }} />
         <Stack.Screen name="candidate/[id]" options={{ title: 'Candidate', animation: 'slide_from_right' }} />
         <Stack.Screen name="chat" options={{ title: 'AI Ballot Guide', animation: 'slide_from_bottom' }} />
-<Stack.Screen name="how-to-vote" options={{ title: 'How to Vote', animation: 'slide_from_right' }} />
-        <Stack.Screen name="polling-map" options={{ title: 'Find Polling Place', animation: 'slide_from_right' }} />
+<Stack.Screen name="how-to-vote" options={{ title: 'How to Vote', animation: 'slide_from_right', headerShown: false }} />
+        <Stack.Screen name="polling-map" options={{ title: 'Find Polling Place', animation: 'slide_from_right', headerShown: false }} />
         <Stack.Screen name="registration/index" options={{ title: 'Register to Vote', animation: 'slide_from_right' }} />
         <Stack.Screen name="registration/[state]" options={{ title: 'Registration Guide', animation: 'slide_from_right' }} />
         <Stack.Screen name="rep/[id]" options={{ title: 'Representative', animation: 'slide_from_right', headerShown: false }} />
@@ -33,5 +43,6 @@ export default function RootLayout() {
         <Stack.Screen name="alerts" options={{ title: 'My Alerts', animation: 'slide_from_right', headerShown: false }} />
       </Stack>
     </QueryClientProvider>
+    </SafeAreaProvider>
   )
 }

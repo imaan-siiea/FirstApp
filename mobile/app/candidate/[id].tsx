@@ -35,6 +35,7 @@ export default function CandidateScreen() {
   )
 
   function handleAskAI() {
+    if (!candidate) return
     router.push({ pathname: '/chat', params: { candidateName: candidate.name } })
   }
 

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { useAppStore } from '../lib/store'
 import { api } from '../lib/api'
+import { extractStateCode } from '../lib/extractStateCode'
 import { RaceSection } from '../components/RaceSection'
 
 function ElectionCard({ election }: { election: any }) {
@@ -59,7 +60,7 @@ function RepCard({ rep }: { rep: any }) {
 
 export default function BallotScreen() {
   const address = useAppStore((s) => s.address)
-  const stateCode = address?.match(/\b([A-Z]{2})\b/)?.[1] ?? null
+  const stateCode = extractStateCode(address)
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['candidates', address],

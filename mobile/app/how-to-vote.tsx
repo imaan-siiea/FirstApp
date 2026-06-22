@@ -3,6 +3,7 @@ import { router } from 'expo-router'
 import { useAppStore } from '../lib/store'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
+import { extractStateCode } from '../lib/extractStateCode'
 
 interface Step {
   number: string
@@ -14,7 +15,7 @@ interface Step {
 
 export default function HowToVoteScreen() {
   const address = useAppStore((s) => s.address)
-  const stateCode = address?.match(/\b([A-Z]{2})\b/)?.[1] ?? null
+  const stateCode = extractStateCode(address)
 
   const { data: regInfo, isLoading } = useQuery({
     queryKey: ['registration', stateCode],

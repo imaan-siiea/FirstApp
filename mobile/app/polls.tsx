@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   View, Text, ScrollView, ActivityIndicator,
   TouchableOpacity, StyleSheet, Image, Linking, Alert,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useQuery } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { api } from '../lib/api'
@@ -49,11 +50,12 @@ interface AccordionProps {
   accentColor: string
   icon: string
   isLoading?: boolean
+  defaultOpen?: boolean
   children: React.ReactNode
 }
 
-function Accordion({ title, subtitle, accentColor, icon, isLoading, children }: AccordionProps) {
-  const [open, setOpen] = useState(false)
+function Accordion({ title, subtitle, accentColor, icon, isLoading, defaultOpen, children }: AccordionProps) {
+  const [open, setOpen] = useState(defaultOpen ?? false)
 
   return (
     <View style={styles.accordion}>
@@ -456,6 +458,7 @@ function StateView({ stateCode }: { stateCode: string }) {
         accentColor="#92400e"
         icon="🏛"
         isLoading={repsLoading}
+        defaultOpen
       >
         {senators.length === 0
           ? <Text style={styles.emptyMsg}>No senators found for this state.</Text>
@@ -579,12 +582,21 @@ function StateView({ stateCode }: { stateCode: string }) {
 
 export default function PollsScreen() {
   const [selectedState, setSelectedState] = useState<string | null>(null)
+  const insets = useSafeAreaInsets()
+  const scrollRef = useRef<ScrollView>(null)
+
+  // Auto-scroll to state content when a state is selected
+  useEffect(() => {
+    if (selectedState) {
+      setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 400)
+    }
+  }, [selectedState])
 
   return (
     <View style={styles.container}>
 
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
@@ -603,7 +615,7 @@ export default function PollsScreen() {
       <ElectoralMap selectedState={selectedState} onSelectState={setSelectedState} />
 
       {/* Body */}
-      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
 
         {!selectedState && (
           <View style={styles.promptCard}>
@@ -658,7 +670,7 @@ const styles = StyleSheet.create({
   // Header
   header: {
     backgroundColor: '#0d5c56',
-    paddingTop: 52, paddingBottom: 16, paddingHorizontal: 20,
+    paddingBottom: 16, paddingHorizontal: 20,
     flexDirection: 'row', alignItems: 'flex-end', gap: 12,
     borderBottomWidth: 1, borderBottomColor: '#0f766e',
   },

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native'
 import { router } from 'expo-router'
 import * as Notifications from 'expo-notifications'
+import Constants from 'expo-constants'
 import { useAppStore } from '../../lib/store'
 import { api } from '../../lib/api'
 
@@ -9,7 +10,10 @@ async function registerPushToken() {
   try {
     const { status } = await Notifications.requestPermissionsAsync()
     if (status !== 'granted') return
-    const tokenData = await Notifications.getExpoPushTokenAsync()
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId
+    const tokenData = await Notifications.getExpoPushTokenAsync(
+      projectId ? { projectId } : undefined
+    )
     const platform = Platform.OS === 'ios' ? 'ios' : 'android'
     await api.registerPushToken(tokenData.data, platform)
   } catch {

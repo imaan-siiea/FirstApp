@@ -1,9 +1,11 @@
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Linking, ScrollView } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps'
 import { useQuery } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { useAppStore } from '../lib/store'
 import { api } from '../lib/api'
+import { extractStateCode } from '../lib/extractStateCode'
 
 // Official polling place finders by state
 const POLLING_URLS: Record<string, { label: string; url: string }> = {
@@ -62,7 +64,8 @@ const POLLING_URLS: Record<string, { label: string; url: string }> = {
 
 export default function PollingMapScreen() {
   const address = useAppStore((s) => s.address)
-  const stateCode = address?.match(/\b([A-Z]{2})\b/)?.[1] ?? null
+  const insets = useSafeAreaInsets()
+  const stateCode = extractStateCode(address)
   const officialLink = stateCode ? POLLING_URLS[stateCode] : null
 
   const { data, isLoading } = useQuery({
@@ -78,7 +81,7 @@ export default function PollingMapScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
@@ -152,7 +155,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
 
-  header: { backgroundColor: '#1e3a5f', padding: 20, paddingTop: 52, paddingBottom: 16 },
+  header: { backgroundColor: '#1e3a5f', padding: 20, paddingBottom: 16 },
   backBtn: { marginBottom: 10 },
   backText: { color: '#93c5fd', fontSize: 14, fontWeight: '600' },
   headerTitle: { fontSize: 24, fontWeight: '800', color: '#fff', marginBottom: 2 },

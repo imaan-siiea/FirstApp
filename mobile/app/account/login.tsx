@@ -13,6 +13,10 @@ export default function LoginScreen() {
 
   async function handleSubmit() {
     if (!email.trim() || !password) return
+    if (isRegistering && password.length < 8) {
+      Alert.alert('Password too short', 'Password must be at least 8 characters.')
+      return
+    }
     setLoading(true)
     try {
       const fn = isRegistering ? api.register : api.login

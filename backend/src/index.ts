@@ -3,6 +3,16 @@ import { buildApp } from './app'
 import { startJobs } from './jobs'
 import { warmUpLegislatorsCache } from './jobs/warmUpLegislators'
 
+// Catch unhandled errors to prevent silent crashes
+process.on('unhandledRejection', (reason) => {
+  console.error('[fatal] Unhandled promise rejection:', reason)
+})
+
+process.on('uncaughtException', (err) => {
+  console.error('[fatal] Uncaught exception:', err)
+  process.exit(1)
+})
+
 const PORT = parseInt(process.env.PORT ?? '3000', 10)
 
 async function start() {

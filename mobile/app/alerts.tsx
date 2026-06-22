@@ -1,4 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { useFollows } from '../hooks/useFollows'
 import { useAppStore } from '../lib/store'
@@ -12,11 +13,12 @@ const TYPE_ICONS: Record<string, string> = {
 export default function AlertsScreen() {
   const userId = useAppStore((s) => s.userId)
   const { follows, loading, toggleFollow } = useFollows()
+  const insets = useSafeAreaInsets()
 
   if (!userId) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Text style={styles.backText}>← Back</Text>
           </TouchableOpacity>
@@ -39,7 +41,7 @@ export default function AlertsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
@@ -92,7 +94,7 @@ export default function AlertsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
 
-  header: { backgroundColor: '#1e3a5f', padding: 20, paddingTop: 52, paddingBottom: 20 },
+  header: { backgroundColor: '#1e3a5f', padding: 20, paddingBottom: 20 },
   backBtn: { marginBottom: 10 },
   backText: { color: '#93c5fd', fontSize: 14, fontWeight: '600' },
   headerTitle: { fontSize: 24, fontWeight: '800', color: '#fff', marginBottom: 2 },

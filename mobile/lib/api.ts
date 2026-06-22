@@ -2,17 +2,61 @@ import * as SecureStore from 'expo-secure-store'
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000'
 
+let isRefreshing = false
+let refreshPromise: Promise<boolean> | null = null
+
 async function getAuthHeader(): Promise<Record<string, string>> {
   const token = await SecureStore.getItemAsync('accessToken')
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function tryRefreshToken(): Promise<boolean> {
+  if (isRefreshing && refreshPromise) return refreshPromise
+
+  isRefreshing = true
+  refreshPromise = (async () => {
+    try {
+      const refreshToken = await SecureStore.getItemAsync('refreshToken')
+      if (!refreshToken) return false
+
+      const res = await fetch(`${API_URL}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      })
+
+      if (!res.ok) return false
+
+      const data = await res.json()
+      await SecureStore.setItemAsync('accessToken', data.accessToken)
+      if (data.refreshToken) {
+        await SecureStore.setItemAsync('refreshToken', data.refreshToken)
+      }
+      return true
+    } catch {
+      return false
+    } finally {
+      isRefreshing = false
+      refreshPromise = null
+    }
+  })()
+
+  return refreshPromise
+}
+
+async function request<T>(path: string, options: RequestInit = {}, retried = false): Promise<T> {
   const authHeaders = await getAuthHeader()
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: { 'Content-Type': 'application/json', ...authHeaders, ...options.headers },
   })
+
+  // Auto-refresh on 401 (once)
+  if (res.status === 401 && !retried) {
+    const refreshed = await tryRefreshToken()
+    if (refreshed) return request<T>(path, options, true)
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }))
     throw new Error((err as any).error ?? 'Request failed')

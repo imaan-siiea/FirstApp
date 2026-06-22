@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, FlatList,
-  ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, SafeAreaView,
+  ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSearchParams } from 'expo-router'
 import { useAppStore } from '../lib/store'
 import { api } from '../lib/api'
@@ -22,7 +23,11 @@ const INITIAL_MESSAGE: Message = {
 export default function ChatScreen() {
   const { candidateName, repContext: repContextStr } = useLocalSearchParams<{ candidateName?: string; repContext?: string }>()
   const address = useAppStore((s) => s.address)
-  const repContext = repContextStr ? JSON.parse(repContextStr) : null
+  const insets = useSafeAreaInsets()
+  let repContext: object | null = null
+  if (repContextStr) {
+    try { repContext = JSON.parse(repContextStr) } catch { /* ignore malformed param */ }
+  }
   const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE])
   const [input, setInput] = useState(candidateName ? `Tell me about ${candidateName}` : '')
   const [loading, setLoading] = useState(false)
@@ -89,7 +94,7 @@ export default function ChatScreen() {
         </View>
       )}
 
-      <View style={styles.inputRow}>
+      <View style={[styles.inputRow, { paddingBottom: Math.max(12, insets.bottom) }]}>
         <TextInput
           style={styles.input}
           value={input}

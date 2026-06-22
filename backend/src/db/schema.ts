@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, jsonb, boolean, uuid } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, jsonb, boolean, uuid, index } from 'drizzle-orm/pg-core'
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -15,7 +15,9 @@ export const userBallots = pgTable('user_ballots', {
   address: text('address').notNull(),
   districtData: jsonb('district_data').notNull(),
   savedAt: timestamp('saved_at').defaultNow().notNull(),
-})
+}, (table) => [
+  index('user_ballots_user_id_idx').on(table.userId),
+])
 
 export const candidates = pgTable('candidates', {
   id: text('id').primaryKey(),
@@ -73,7 +75,11 @@ export const follows = pgTable('follows', {
   entityId: text('entity_id').notNull(),     // lowercased name or state code
   entityName: text('entity_name').notNull(), // display name
   createdAt: timestamp('created_at').defaultNow().notNull(),
-})
+}, (table) => [
+  index('follows_user_id_idx').on(table.userId),
+  index('follows_user_entity_idx').on(table.userId, table.entityId),
+  index('follows_entity_type_idx').on(table.entityType),
+])
 
 export const pushTokens = pgTable('push_tokens', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -81,4 +87,6 @@ export const pushTokens = pgTable('push_tokens', {
   token: text('token').notNull().unique(),
   platform: text('platform').notNull(), // 'ios' | 'android'
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-})
+}, (table) => [
+  index('push_tokens_user_id_idx').on(table.userId),
+])
