@@ -89,23 +89,20 @@ Three cards in a row. Maroon border appears on hover. Each card links to its det
 - Short description: Research paper analyzing Native American slavery in colonial North America through colonial print culture and decolonial epistemological critique. Primary sources: Library of Congress digitized newspapers.
 - Tag: `History · Decolonial Research`
 
-**Card 3 — Patent (POCCT)**
-- Title: Patent Pending
-- Short description: [TO FILL IN — one sentence describing what the invention does, as specific or vague as preferred]
-- Tag: `Invention · Intellectual Property`
+**Card 3 — OCCT (Organizational Commitment Chain Tracker)**
+- Title: OCCT — Organizational Commitment Chain Tracker
+- Short description: A software system that tracks whether politicians keep their promises — scoring fidelity across five dimensions: amount, scope, timeline, population, and mechanism. Provisional patent holder.
+- Tag: `Civic Tech · Intellectual Property`
 
 ### 4. Values
-Three statements, large Playfair Display, centered, cream text. Full-width section.
+Single statement, large Playfair Display, centered, cream text. Full-width section.
 
-Placeholders (Imaan to write her own):
-- *History is not neutral.*
-- *Technology should serve people, not systems.*
-- *Power belongs to those who show up.*
+- *Carpe Diem.*
 
 ### 5. Contact
 Minimal. Dark background continues.
-- Email: `[Imaan to provide]`
-- LinkedIn: `[Imaan to provide if desired]`
+- Email: `imaan@siiea.ai`
+- LinkedIn: `www.linkedin.com/in/imaan-ali-8857a0308`
 - One line of copy: *"I respond to everything."*
 
 ---
@@ -133,11 +130,11 @@ Minimal. Dark background continues.
 - Option to download or read full paper (PDF link)
 
 ### `/work/patent`
-- Invention name / title
-- Problem it solves
-- What it does
-- Filing status: Provisional patent filed (POCCT)
-- [Imaan to provide details — can be as specific or general as she wants]
+- **Title:** OCCT — Organizational Commitment Chain Tracker
+- **The problem:** Existing tools only give a binary "kept or broken" rating on political promises. That misses how promises actually die — through dilution, delay, and scope creep.
+- **What it does:** Automatically extracts commitments from speeches and documents, then tracks each promise through legislation and regulation. Produces a multi-dimensional fidelity score across five dimensions: amount, scope, timeline, population, and mechanism.
+- **Why it matters:** Shows exactly where and how a promise was diluted, delayed, or delivered — not just whether it was kept.
+- **Status:** Provisional patent filed (USPTO)
 
 ---
 
@@ -168,7 +165,7 @@ No database. No auth. No CMS. Static-ish Next.js — fast, simple, nothing to br
 ## Content Still Needed from Imaan
 
 - [ ] Headshot / portrait photo (can be added after launch)
-- [ ] Email address for contact section
-- [ ] LinkedIn URL (optional)
-- [ ] Patent description (as specific or vague as preferred)
-- [ ] Her actual values (3 statements replacing placeholders)
+- [x] Email — imaan@siiea.ai
+- [x] LinkedIn — www.linkedin.com/in/imaan-ali-8857a0308
+- [x] Patent description — OCCT full description provided
+- [x] Values — written and approved
