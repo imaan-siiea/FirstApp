@@ -227,6 +227,6 @@ set). When ready:
 | Expo login + `eas init` (projectId) | IMRAN | `[DONE]` ✅ — `@imaan12345s-team/voteriq`, id `d0bacb3a-7935-4939-a575-3d50acf74a93` |
 | Google Maps Android key | IMRAN/CC-SN | ⬜ |
 | Phone screenshots (2–8) | IMRAN | ⬜ |
-| EAS production AAB build | IMRAN | ⬜ |
+| EAS production AAB build | IMRAN | `[DONE]` ✅ — build `54f974c4`, v1.0.0 (versionCode 1), [.aab artifact](https://expo.dev/artifacts/eas/DAij0BTmmiuovgONro1RFUSCnzkFXI_ta-x4HaF1VgI.aab) |
 | Play Console: listing + Data Safety + upload | IMRAN | ⬜ |
 | Apple enrollment ($99) — start early | IMRAN | ⬜ (Phase 2) |
