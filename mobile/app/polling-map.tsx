@@ -1,10 +1,7 @@
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Linking, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Linking, ScrollView } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps'
-import { useQuery } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { useAppStore } from '../lib/store'
-import { api } from '../lib/api'
 import { extractStateCode } from '../lib/extractStateCode'
 
 // Official polling place finders by state
@@ -68,17 +65,6 @@ export default function PollingMapScreen() {
   const stateCode = extractStateCode(address)
   const officialLink = stateCode ? POLLING_URLS[stateCode] : null
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['polling-places', address],
-    queryFn: () => api.getPollingPlaces(address!),
-    enabled: !!address,
-  })
-
-  const coords = data?.coords
-  const region = coords
-    ? { latitude: coords.lat, longitude: coords.lng, latitudeDelta: 0.04, longitudeDelta: 0.04 }
-    : { latitude: 37.09, longitude: -95.71, latitudeDelta: 40, longitudeDelta: 40 }
-
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
@@ -89,62 +75,38 @@ export default function PollingMapScreen() {
         <Text style={styles.headerSubtitle} numberOfLines={1}>{address ?? 'your address'}</Text>
       </View>
 
-      {isLoading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color="#1e3a5f" />
-          <Text style={styles.loadingText}>Locating your address…</Text>
+      <ScrollView style={styles.panel} contentContainerStyle={styles.panelContent}>
+        <View style={styles.infoBox}>
+          <Text style={styles.infoTitle}>📍 Your Assigned Polling Place</Text>
+          <Text style={styles.infoBody}>
+            Polling places are assigned by your county based on your registered address. Use your state's official tool below to find your exact polling location.
+          </Text>
         </View>
-      ) : (
-        <>
-          <MapView
-            style={styles.map}
-            provider={PROVIDER_DEFAULT}
-            region={region}
+
+        {officialLink ? (
+          <TouchableOpacity
+            style={styles.officialBtn}
+            onPress={() => Linking.openURL(officialLink.url)}
           >
-            {coords && (
-              <Marker
-                coordinate={{ latitude: coords.lat, longitude: coords.lng }}
-                title="Your Address"
-                description={address ?? ''}
-                pinColor="#1e3a5f"
-              />
-            )}
-          </MapView>
+            <Text style={styles.officialBtnText}>🏛️ {officialLink.label} →</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={styles.officialBtn}
+            onPress={() => Linking.openURL('https://www.vote.org/polling-place-locator/')}
+          >
+            <Text style={styles.officialBtnText}>🗳️ Find My Polling Place (Vote.org) →</Text>
+          </TouchableOpacity>
+        )}
 
-          <ScrollView style={styles.panel} contentContainerStyle={styles.panelContent}>
-            <View style={styles.infoBox}>
-              <Text style={styles.infoTitle}>📍 Your Assigned Polling Place</Text>
-              <Text style={styles.infoBody}>
-                Polling places are assigned by your county based on your registered address. Use your state's official tool below to find your exact polling location.
-              </Text>
-            </View>
-
-            {officialLink ? (
-              <TouchableOpacity
-                style={styles.officialBtn}
-                onPress={() => Linking.openURL(officialLink.url)}
-              >
-                <Text style={styles.officialBtnText}>🏛️ {officialLink.label} →</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.officialBtn}
-                onPress={() => Linking.openURL('https://www.vote.org/polling-place-locator/')}
-              >
-                <Text style={styles.officialBtnText}>🗳️ Find My Polling Place (Vote.org) →</Text>
-              </TouchableOpacity>
-            )}
-
-            <View style={styles.tipsBox}>
-              <Text style={styles.tipsTitle}>Election Day Tips</Text>
-              <Text style={styles.tip}>• Bring a valid photo ID if your state requires it</Text>
-              <Text style={styles.tip}>• Polls typically open 7am and close at 7–8pm</Text>
-              <Text style={styles.tip}>• If you're in line when polls close, you can still vote</Text>
-              <Text style={styles.tip}>• You must vote at your assigned polling place</Text>
-            </View>
-          </ScrollView>
-        </>
-      )}
+        <View style={styles.tipsBox}>
+          <Text style={styles.tipsTitle}>Election Day Tips</Text>
+          <Text style={styles.tip}>• Bring a valid photo ID if your state requires it</Text>
+          <Text style={styles.tip}>• Polls typically open 7am and close at 7–8pm</Text>
+          <Text style={styles.tip}>• If you're in line when polls close, you can still vote</Text>
+          <Text style={styles.tip}>• You must vote at your assigned polling place</Text>
+        </View>
+      </ScrollView>
     </View>
   )
 }
