@@ -11,6 +11,7 @@ module.exports = () => ({
   expo: {
     name: 'VoterIQ',
     slug: 'voteriq',
+    owner: 'imaan12345s-team',
     version: '1.0.0',
     orientation: 'portrait',
     scheme: 'voteriq',
@@ -75,9 +76,9 @@ module.exports = () => ({
       policy: 'appVersion',
     },
     extra: {
-      // Populated by `eas init` — leave as-is until the project is linked.
+      // Linked to @imaan12345s-team/voteriq via `eas init`. Env var overrides for CI/per-env.
       eas: {
-        projectId: process.env.EAS_PROJECT_ID || undefined,
+        projectId: process.env.EAS_PROJECT_ID || 'd0bacb3a-7935-4939-a575-3d50acf74a93',
       },
     },
   },

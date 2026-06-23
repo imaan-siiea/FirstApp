@@ -224,7 +224,7 @@ set). When ready:
 | App icon + feature graphic (brand assets) | CLAUDE | `[DONE]` ✅ |
 | Backend deployed @ api.voteriq.app | CC-SN | ⬜ |
 | Legal pages hosted @ voteriq.app | CC-SN | ⬜ |
-| Expo login + `eas init` (projectId) | IMRAN | ⬜ |
+| Expo login + `eas init` (projectId) | IMRAN | `[DONE]` ✅ — `@imaan12345s-team/voteriq`, id `d0bacb3a-7935-4939-a575-3d50acf74a93` |
 | Google Maps Android key | IMRAN/CC-SN | ⬜ |
 | Phone screenshots (2–8) | IMRAN | ⬜ |
 | EAS production AAB build | IMRAN | ⬜ |
